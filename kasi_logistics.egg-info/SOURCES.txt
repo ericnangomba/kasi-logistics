@@ -1,0 +1,8 @@
+LICENSE.md
+README.md
+pyproject.toml
+app/main.py
+kasi_logistics.egg-info/PKG-INFO
+kasi_logistics.egg-info/SOURCES.txt
+kasi_logistics.egg-info/dependency_links.txt
+kasi_logistics.egg-info/top_level.txt

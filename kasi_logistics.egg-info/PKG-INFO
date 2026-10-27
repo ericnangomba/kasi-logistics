@@ -1,0 +1,52 @@
+Metadata-Version: 2.4
+Name: kasi-logistics
+Version: 0.1.0
+Summary: Informal Retail Mesh & Route Optimization Agent powered by Meta AI models and PayMerch Mobile
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE.md
+Dynamic: license-file
+
+# 🇿🇦 Kasi-Logistics AI Engine
+> **Meta Global AI Developer Hackathon Submission (Oct 27 – Nov 4, 2026)**  
+> **Track:** Indie Developer Track  
+> **Problem Statements:** *Build for Your World* & *Push the Frontier*  
+
+A spatial route optimization and multi-agent wholesale pooling engine for informal township spaza shops, street hawkers, and micro-wholesalers across South Africa. Integrated directly with **PayMerch Mobile** for dynamic QR micro-escrow settlement.
+
+Everything in this repository was built during the Meta Global AI Developer Hackathon window. Pre-existing code from the **PayMerch Mobile** prototype is cleanly isolated in `integration/` to ensure 100% transparency of new contributions.
+
+---
+
+## 📌 The Problem
+
+South Africa’s informal township economy turns over **R750+ Billion annually**, yet remains over **70% cash-dominant**. While 82%–96% of adult South Africans hold formal bank accounts, physical cash dominates due to transaction fees, safety risks, network outages, and unmapped informal infrastructure.
+
+1. **Unmapped Physical Supply Chain:** Commercial GPS fails in dense, unmapped township alleyways (e.g., Khayelitsha, Soweto).
+2. **Wholesale Inefficiency:** Micro-traders buy inventory independently at high retail prices without volume leverage.
+3. **Cash Vulnerability:** Cash transport exposes traders to theft and extortion.
+
+---
+
+## 🛠️ What It Does & Meta Model Integration
+
+| Feature | Meta Models / Tech | Operational Purpose | Status |
+| :--- | :--- | :--- | :--- |
+| **0. Service Foundation** | FastAPI / Security Guardrails | Auth, credit protection, constant-time token verification, local test runner. | ✅ Built |
+| **1. Unmapped Spatial Segmentation** | **SAM 3.1** | Segments drone & ground footage to map unmapped township alleyways & navigation nodes. | Planned |
+| **2. Spaza Wholesale Order Pooling** | **Muse Spark Open** (`muse-spark-open-1026`) | Autonomous agent running on Baseten to pool stock orders across spazas into bulk buys. | Planned |
+| **3. Offline Edge Synchronization** | **Muse Code** | Auto-generates resilient, lightweight offline scripts for drivers operating through load-shedding. | Planned |
+| **4. Dynamic QR Escrow Binding** | **PayMerch Mobile** | Locks trade payouts into time-bound QR micro-escrows released upon SAM 3.1 verified delivery. | Planned |
+
+---
+
+## 🏗️ Architecture & Security Defaults
+
+```text
+Spaza Vendor / Driver App  ── (PayMerch Mobile dynamic QR escrow UI)
+          │
+          ▼  HTTPS + Bearer Service Token
+Kasi-Logistics AI Core     ── (FastAPI backend - this repository, public)
+          │  Server-side Baseten & Meta API Keys
+          ▼
+Meta Model Stack           ── (SAM 3.1 · Muse Spark Open · Muse Code)
