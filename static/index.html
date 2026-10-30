@@ -239,17 +239,49 @@
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    let routeMap = L.map('mapRoute').setView([-34.0200, 18.6700], 13);
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19
+    });
+
+    const esriSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
       attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS',
       maxZoom: 19
-    }).addTo(routeMap);
+    });
 
-    let spatialMap = L.map('mapSpatial').setView([-34.0200, 18.6700], 13);
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-      attribution: 'Tiles &copy; Esri',
+    const spatialOsmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       maxZoom: 19
-    }).addTo(spatialMap);
+    });
+
+    const spatialEsriSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS',
+      maxZoom: 19
+    });
+
+    let routeMap = L.map('mapRoute', {
+      center: [-34.0280, 18.6750],
+      zoom: 13,
+      layers: [osmLayer]
+    });
+
+    let spatialMap = L.map('mapSpatial', {
+      center: [-34.0280, 18.6750],
+      zoom: 13,
+      layers: [spatialOsmLayer]
+    });
+
+    const routeBaseMaps = {
+      "Street Map (Roads & Names)": osmLayer,
+      "Satellite Imagery": esriSatellite
+    };
+    const spatialBaseMaps = {
+      "Street Map (Roads & Names)": spatialOsmLayer,
+      "Satellite Imagery": spatialEsriSatellite
+    };
+
+    L.control.layers(routeBaseMaps).addTo(routeMap);
+    L.control.layers(spatialBaseMaps).addTo(spatialMap);
 
     let routeLayerGroup = L.layerGroup().addTo(routeMap);
     let spatialLayerGroup = L.layerGroup().addTo(spatialMap);
@@ -258,40 +290,45 @@
     let supplierCoords = [-33.9012, 18.6291];
     let spazaStops = [];
 
-    const townshipPresets = {
+const townshipPresets = {
       khayelitsha: {
-        center: [-34.0250, 18.6700],
-        supplier: { name: "Bellville MegaWholesale Distribution Centre", coords: [-33.9012, 18.6291] },
+        center: [-34.0280, 18.6750],
+        supplier: { name: "Bellville MegaWholesale & Distribution Hub", coords: [-33.9012, 18.6291] },
         spazas: [
-          { stop_id: "kh_1", merchant_name: "Mama Africa Spaza (Site C Terminus)", order_volume_kg: 150.0, coordinates: [-34.0321, 18.6654] },
-          { stop_id: "kh_2", merchant_name: "Harare Fresh Produce & Tuckshop", order_volume_kg: 220.0, coordinates: [-34.0210, 18.6812] },
-          { stop_id: "kh_3", merchant_name: "Kuyasa Station General Dealer", order_volume_kg: 180.0, coordinates: [-34.0412, 18.6890] },
-          { stop_id: "kh_4", merchant_name: "Lithalemihle Spaza (Site B)", order_volume_kg: 130.0, coordinates: [-34.0285, 18.6580] }
+          { stop_id: "kh_site_c_01", merchant_name: "Mama Africa Spaza (Site C Terminus)", order_volume_kg: 180.0, coordinates: [-34.0321, 18.6654] },
+          { stop_id: "kh_harare_02", merchant_name: "Harare Fresh Produce & Tuckshop", order_volume_kg: 240.0, coordinates: [-34.0210, 18.6812] },
+          { stop_id: "kh_kuyasa_03", merchant_name: "Kuyasa Station General Dealer", order_volume_kg: 195.0, coordinates: [-34.0412, 18.6890] },
+          { stop_id: "kh_site_b_04", merchant_name: "Lithalemihle Wholesaling Spaza (Site B)", order_volume_kg: 150.0, coordinates: [-34.0285, 18.6580] },
+          { stop_id: "kh_lookout_05", merchant_name: "Lookout Hill Commercial Node", order_volume_kg: 310.0, coordinates: [-34.0150, 18.6905] },
+          { stop_id: "kh_bongweni_06", merchant_name: "Bongweni Community Store", order_volume_kg: 165.0, coordinates: [-34.0350, 18.6750] }
         ]
       },
       gugulethu: {
         center: [-33.9750, 18.5700],
-        supplier: { name: "Philippi Industrial Wholesalers", coords: [-33.9700, 18.5500] },
+        supplier: { name: "Philippi Industrial Wholesale Park", coords: [-33.9700, 18.5500] },
         spazas: [
-          { stop_id: "g_1", merchant_name: "NY1 Unit 1 Spaza Shop", order_volume_kg: 140.0, coordinates: [-33.9780, 18.5680] },
-          { stop_id: "g_2", merchant_name: "NY108 Gugulethu Square Tuck", order_volume_kg: 210.0, coordinates: [-33.9820, 18.5740] },
-          { stop_id: "g_3", merchant_name: "Mau Mau General Dealer", order_volume_kg: 195.0, coordinates: [-33.9730, 18.5620] }
+          { stop_id: "gug_ny1_01", merchant_name: "NY1 Unit 1 Spaza Shop", order_volume_kg: 140.0, coordinates: [-33.9780, 18.5680] },
+          { stop_id: "gug_square_02", merchant_name: "NY108 Gugulethu Square Tuck", order_volume_kg: 220.0, coordinates: [-33.9820, 18.5740] },
+          { stop_id: "gug_maumau_03", merchant_name: "Mau Mau General Dealer (NY78)", order_volume_kg: 190.0, coordinates: [-33.9730, 18.5620] },
+          { stop_id: "gug_ny6_04", merchant_name: "NY6 Section Community Market", order_volume_kg: 175.0, coordinates: [-33.9705, 18.5590] }
         ]
       },
       mitchellsplain: {
         center: [-34.0450, 18.6100],
-        supplier: { name: "Epping Industrial Bulk Market", coords: [-33.9250, 18.5200] },
+        supplier: { name: "Epping Industria Bulk Goods Market", coords: [-33.9250, 18.5200] },
         spazas: [
-          { stop_id: "m_1", merchant_name: "Town Centre Wholesaling Spaza", order_volume_kg: 250.0, coordinates: [-34.0420, 18.6080] },
-          { stop_id: "m_2", merchant_name: "Mandalay Station Store", order_volume_kg: 170.0, coordinates: [-34.0510, 18.6210] }
+          { stop_id: "mp_centre_01", merchant_name: "Town Centre Wholesaling Spaza", order_volume_kg: 280.0, coordinates: [-34.0420, 18.6080] },
+          { stop_id: "mp_mandalay_02", merchant_name: "Mandalay Station Store", order_volume_kg: 195.0, coordinates: [-34.0510, 18.6210] },
+          { stop_id: "mp_beacon_03", merchant_name: "Beacon Valley Retail Spaza", order_volume_kg: 210.0, coordinates: [-34.0580, 18.6150] }
         ]
       },
       langa: {
         center: [-33.9350, 18.5300],
-        supplier: { name: "Epping Industrial Hub", coords: [-33.9250, 18.5200] },
+        supplier: { name: "Epping Industrial Distribution Hub", coords: [-33.9250, 18.5200] },
         spazas: [
-          { stop_id: "l_1", merchant_name: "Zone 23 Langa Spaza", order_volume_kg: 120.0, coordinates: [-33.9330, 18.5280] },
-          { stop_id: "l_2", merchant_name: "Washington Street Tuckshop", order_volume_kg: 160.0, coordinates: [-33.9390, 18.5350] }
+          { stop_id: "langa_z23_01", merchant_name: "Zone 23 Langa Spaza", order_volume_kg: 130.0, coordinates: [-33.9330, 18.5280] },
+          { stop_id: "langa_wash_02", merchant_name: "Washington Street Tuckshop", order_volume_kg: 165.0, coordinates: [-33.9390, 18.5350] },
+          { stop_id: "langa_bhunga_03", merchant_name: "Bhunga Avenue Trading Post", order_volume_kg: 185.0, coordinates: [-33.9450, 18.5220] }
         ]
       }
     };
