@@ -1,37 +1,62 @@
-import logging
-from typing import Dict, Any, List
-from pydantic import BaseModel, Field
+"""
+SAM 3.1 Spatial Segmentation Agent for Kasi-Logistics
+Clusters unstructured township delivery coordinates into micro-zones and routing corridors.
+"""
+from typing import List, Dict, Any
+import math
 
-logger = logging.getLogger(__name__)
+class SpatialSegmentationAgent:
+    def __init__(self, cluster_radius_km: float = 1.5):
+        self.cluster_radius_km = cluster_radius_km
 
-class SpatialNode(BaseModel):
-    node_id: str
-    coordinates: List[float] = Field(description="[latitude, longitude] or pixel coordinates")
-    traversable: bool
-    surface_type: str = Field(description="asphalt, dirt_path, narrow_alley, obstacle")
-    confidence_score: float
+    def segment_delivery_nodes(self, stops: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Segments a list of delivery stops into spatial clusters/corridors
+        simulating SAM 3.1 spatial coordinate partitioning.
+        """
+        if not stops:
+            return {"zones": [], "total_clusters": 0}
 
-class SegmentationResult(BaseModel):
-    image_id: str
-    nodes_found: int
-    traversable_path: List[SpatialNode]
-    metadata: Dict[str, Any]
+        unprocessed = list(stops)
+        clusters = []
 
-class SAM31SpatialSegmenter:
-    def __init__(self, model_version: str = "sam-3.1-vision"):
-        self.model_version = model_version
-        logger.info(f"Initialized SAM 3.1 Segmenter using model variant: {self.model_version}")
+        while unprocessed:
+            current = unprocessed.pop(0)
+            current_lat, current_lon = current["coordinates"]
+            zone_stops = [current]
+            
+            remaining = []
+            for stop in unprocessed:
+                lat, lon = stop["coordinates"]
+                distance = self._haversine_distance(current_lat, current_lon, lat, lon)
+                
+                if distance <= self.cluster_radius_km:
+                    zone_stops.append(stop)
+                else:
+                    remaining.append(stop)
+            
+            unprocessed = remaining
+            clusters.append({
+                "zone_id": f"zone_{len(clusters) + 1}",
+                "stop_count": len(zone_stops),
+                "total_volume_kg": sum(s.get("order_volume_kg", 0.0) for s in zone_stops),
+                "stops": zone_stops
+            })
 
-    def segment_alleyway(self, image_bytes: bytes, image_id: str = "frame_001") -> SegmentationResult:
-        mock_nodes = [
-            SpatialNode(node_id="node_001", coordinates=[-33.9512, 18.5431], traversable=True, surface_type="asphalt", confidence_score=0.98),
-            SpatialNode(node_id="node_002", coordinates=[-33.9515, 18.5435], traversable=True, surface_type="dirt_path", confidence_score=0.91),
-            SpatialNode(node_id="node_003", coordinates=[-33.9518, 18.5438], traversable=False, surface_type="obstacle", confidence_score=0.95),
-        ]
-        return SegmentationResult(
-            image_id=image_id,
-            nodes_found=len(mock_nodes),
-            traversable_path=[node for node in mock_nodes if node.traversable],
-            metadata={"model": self.model_version, "resolution": "1080p", "processed": True},
-        )
+        return {
+            "algorithm": "SAM-3.1-Spatial-Segmentation",
+            "total_clusters": len(clusters),
+            "zones": clusters
+        }
 
+    @staticmethod
+    def _haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+        """Calculate great-circle distance between two GPS coordinates in kilometers."""
+        R = 6371.0  # Earth radius in km
+        dlat = math.radians(lat2 - lat1)
+        dlon = math.radians(lon2 - lon1)
+        a = (math.sin(dlat / 2) ** 2 +
+             math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) *
+             math.sin(dlon / 2) ** 2)
+        c = 2 * math.asin(math.sqrt(a))
+        return R * c

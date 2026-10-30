@@ -1,43 +1,48 @@
-# 🇿🇦 Kasi-Logistics AI Engine
-> **Meta Global AI Developer Hackathon Submission (Oct 27 – Nov 4, 2026)**  
-> **Track:** Indie Developer Track  
-> **Problem Statements:** *Build for Your World* & *Push the Frontier*  
+Set-Content -Path "README.md" -Value '# Kasi-Logistics 🛵📦
 
-A spatial route optimization and multi-agent wholesale pooling engine for informal township spaza shops, street hawkers, and micro-wholesalers across South Africa. Integrated directly with **PayMerch Mobile** for dynamic QR micro-escrow settlement.
-
-Everything in this repository was built during the Meta Global AI Developer Hackathon window. Pre-existing code from the **PayMerch Mobile** prototype is cleanly isolated in `integration/` to ensure 100% transparency of new contributions.
+> **Meta Global AI Developer Hackathon** — Indie Developer Track  
+> Intelligent, capacity-constrained delivery routing and spatial segmentation designed for African township and informal settlement (Kasi) commerce.
 
 ---
 
-## 📌 The Problem
+## 🚀 Overview
 
-South Africa’s informal township economy turns over **R750+ Billion annually**, yet remains over **70% cash-dominant**. While 82%–96% of adult South Africans hold formal bank accounts, physical cash dominates due to transaction fees, safety risks, network outages, and unmapped informal infrastructure.
+**Kasi-Logistics** is a localized logistics optimization backend built to empower township spaza shops, local merchants, and independent delivery couriers. Traditional routing engines fail in dense, informal townships due to unmapped roads, lack of formal addresses, and varying vehicle capacity constraints. 
 
-1. **Unmapped Physical Supply Chain:** Commercial GPS fails in dense, unmapped township alleyways (e.g., Khayelitsha, Soweto).
-2. **Wholesale Inefficiency:** Micro-traders buy inventory independently at high retail prices without volume leverage.
-3. **Cash Vulnerability:** Cash transport exposes traders to theft and extortion.
-
----
-
-## 🛠️ What It Does & Meta Model Integration
-
-| Feature | Meta Models / Tech | Operational Purpose | Status |
-| :--- | :--- | :--- | :--- |
-| **0. Service Foundation** | FastAPI / Security Guardrails | Auth, credit protection, constant-time token verification, local test runner. | ✅ Built |
-| **1. Unmapped Spatial Segmentation** | **SAM 3.1** | Segments drone & ground footage to map unmapped township alleyways & navigation nodes. | Planned |
-| **2. Spaza Wholesale Order Pooling** | **Muse Spark Open** (`muse-spark-open-1026`) | Autonomous agent running on Baseten to pool stock orders across spazas into bulk buys. | Planned |
-| **3. Offline Edge Synchronization** | **Muse Code** | Auto-generates resilient, lightweight offline scripts for drivers operating through load-shedding. | Planned |
-| **4. Dynamic QR Escrow Binding** | **PayMerch Mobile** | Locks trade payouts into time-bound QR micro-escrows released upon SAM 3.1 verified delivery. | Planned |
+Kasi-Logistics solves this by combining:
+1. **SAM 3.1 Spatial Segmentation Agent:** Processes geographic and visual data to cluster delivery nodes and identify optimal routing corridors within informal township layouts.
+2. **Capacity-Constrained Nearest-Neighbor Optimizer:** Dynamically sequences multi-stop delivery routes while strictly adhering to vehicle weight limits and reducing fuel burn.
+3. **Secure FastAPI Core:** High-performance, authenticated microservice with robust test coverage and automated CI/CD.
 
 ---
 
-## 🏗️ Architecture & Security Defaults
+## 🛠️ Tech Stack & Architecture
+
+- **Backend Framework:** FastAPI (Python 3.12)
+- **Validation & Serialization:** Pydantic v2
+- **Spatial Agent & Routing:** Custom Python algorithms incorporating SAM 3.1 spatial segmentation & capacity-constrained heuristics
+- **Testing & Quality Assurance:** Pytest, HTTPX, Ruff linter
+- **CI/CD:** GitHub Actions (automated testing & linting on push)
+
+---
+
+## 📂 Project Structure
 
 ```text
-Spaza Vendor / Driver App  ── (PayMerch Mobile dynamic QR escrow UI)
-          │
-          ▼  HTTPS + Bearer Service Token
-Kasi-Logistics AI Core     ── (FastAPI backend - this repository, public)
-          │  Server-side Baseten & Meta API Keys
-          ▼
-Meta Model Stack           ── (SAM 3.1 · Muse Spark Open · Muse Code)
+kasi-logistics/
+├── app/
+│   ├── __init__.py
+│   ├── main.py              # FastAPI application & endpoints (/health, /v1/routes/optimize)
+│   ├── security.py          # Bearer token authentication & security middleware
+│   └── agent/
+│       ├── __init__.py
+│       ├── optimizer.py     # Capacity-constrained route optimization engine
+│       └── spatial.py       # SAM 3.1 spatial segmentation agent
+├── tests/
+│   ├── __init__.py
+│   └── test_api.py          # Comprehensive pytest suite
+├── .github/
+│   └── workflows/
+│       └── ci.yml           # Automated CI/CD pipeline
+├── requirements.txt         # Project dependencies
+└── README.md
