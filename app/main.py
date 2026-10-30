@@ -7,6 +7,7 @@ from pathlib import Path
 from fastapi import FastAPI, Depends, File, UploadFile, status, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.security import verify_token, api_semaphore
 from app.agent.spatial import SAM31SpatialSegmenter, SegmentationResult
@@ -15,6 +16,7 @@ from app.agent.optimizer import (
     OptimizedRouteResponse,
     KasiRouteOptimizer,
 )
+from app.agent.paymerch import router as paymerch_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -25,6 +27,23 @@ app = FastAPI(
     version="1.0.0",
 )
 
+# Enable CORS for Netlify frontend & local dev
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://paymerchmobmoney.netlify.app",
+        "http://localhost:8092",
+        "http://127.0.0.1:8092",
+        "*"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include PayMerch router
+app.include_router(paymerch_router)
+
 # Define absolute paths based on project root layout
 BASE_DIR = Path(__file__).resolve().parent.parent
 STATIC_DIR = BASE_DIR / "static"
@@ -32,9 +51,6 @@ INDEX_FILE = STATIC_DIR / "index.html"
 
 # Mount static directory using absolute path
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
-
-# Initialize SAM 3.1 Spatial Vision Pipeline
-segmenter = SAM31SpatialSegmenter()
 
 
 @app.get("/", include_in_schema=False)

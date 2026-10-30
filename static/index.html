@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kasi-Logistics | Real-World Spatial Control Center</title>
+  <title>Kasi-Logistics | Real-World Spatial & Fintech Control Center</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <!-- Leaflet CSS -->
@@ -22,38 +22,40 @@
         <i class="fa-solid fa-truck-fast"></i>
       </div>
       <div>
-        <h1 class="text-xl font-bold tracking-tight text-white">Kasi-Logistics AI Engine</h1>
-        <p class="text-xs text-slate-400">Real Street Network Routing & Cape Town Township Intelligence</p>
+        <h1 class="text-xl font-bold tracking-tight text-white">Kasi-Logistics & PayMerch AI</h1>
+        <p class="text-xs text-slate-400">Township Logistics & Closed-Loop Escrow Engine</p>
       </div>
     </div>
     <div class="flex items-center gap-3">
-      <span id="weatherBadge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
-        <i class="fa-solid fa-cloud-sun"></i> Cape Town: 22°C (Clear Roads)
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Engine Online (:8092)
       </span>
       <input type="password" id="authToken" value="default-dev-token-change-me" placeholder="Bearer Token" class="bg-slate-800 border border-slate-700 text-xs text-slate-200 px-3 py-1.5 rounded-lg focus:outline-none focus:border-indigo-500 w-36" />
     </div>
   </header>
 
   <main class="max-w-7xl mx-auto px-6 py-8">
-    <div class="flex gap-4 border-b border-slate-800 mb-8">
-      <button id="tabRouteBtn" onclick="switchTab('route')" class="pb-3 px-2 font-semibold text-sm border-b-2 border-indigo-500 text-indigo-400 transition-all flex items-center gap-2">
+    <!-- Tab Controls -->
+    <div class="flex gap-4 border-b border-slate-800 mb-8 overflow-x-auto">
+      <button id="tabRouteBtn" onclick="switchTab('route')" class="pb-3 px-2 font-semibold text-sm border-b-2 border-indigo-500 text-indigo-400 transition-all flex items-center gap-2 whitespace-nowrap">
         <i class="fa-solid fa-route"></i> Real-Road Street Dispatcher
       </button>
-      <button id="tabSpatialBtn" onclick="switchTab('spatial')" class="pb-3 px-2 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2">
-        <i class="fa-solid fa-layer-group"></i> SAM 3.1 Spatial Vision Analyzer
+      <button id="tabSpatialBtn" onclick="switchTab('spatial')" class="pb-3 px-2 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2 whitespace-nowrap">
+        <i class="fa-solid fa-layer-group"></i> SAM 3.1 Spatial Vision
+      </button>
+      <button id="tabFintechBtn" onclick="switchTab('fintech')" class="pb-3 px-2 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2 whitespace-nowrap">
+        <i class="fa-solid fa-wallet text-emerald-400"></i> PayMerch Escrow & Mobile Money
       </button>
     </div>
 
     <!-- TAB 1: REAL-ROAD ROUTING -->
     <section id="routeTab" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      <!-- Control Panel -->
       <div class="lg:col-span-5 bg-slate-800/50 border border-slate-700/60 p-6 rounded-2xl shadow-xl space-y-4">
         <h2 class="text-lg font-bold text-white flex items-center gap-2">
           <i class="fa-solid fa-map-pin text-indigo-400"></i> Real Township Presets & Landmarks
         </h2>
         <p class="text-xs text-slate-400">Select real Cape Town regional hubs or click any exact point on the map to add real-world spaza delivery stops.</p>
 
-        <!-- Region Preset Selector -->
         <div>
           <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Load Real Settlement Hub</label>
           <select id="townshipPreset" onchange="loadTownshipPreset(this.value)" class="w-full bg-slate-900 border border-slate-700 text-xs px-3 py-2 rounded-lg text-slate-200 focus:outline-none">
@@ -65,7 +67,6 @@
           </select>
         </div>
 
-        <!-- Mode Toggle -->
         <div>
           <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Map Click Action</label>
           <div class="grid grid-cols-2 gap-2">
@@ -78,14 +79,12 @@
           </div>
         </div>
 
-        <!-- Supplier Info -->
         <div>
           <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Active Wholesaler Hub</label>
           <input type="text" id="supplierName" value="Bellville MegaWholesale Distribution Centre" class="w-full bg-slate-900 border border-slate-700 text-xs px-3 py-2 rounded-lg text-slate-200 focus:outline-none mb-1" />
           <div class="text-[10px] text-slate-400">Real GPS: <span id="supplierCoordsDisplay">-33.9012, 18.6291</span></div>
         </div>
 
-        <!-- Real-Time Conditions -->
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Time of Day</label>
@@ -104,7 +103,6 @@
           </div>
         </div>
 
-        <!-- Spaza JSON Area -->
         <div>
           <div class="flex justify-between items-center mb-1">
             <label class="block text-xs font-semibold text-slate-300 uppercase">Spaza Stops (<span id="spazaCount">3</span>)</label>
@@ -118,7 +116,6 @@
         </button>
       </div>
 
-      <!-- Map Display & Route Alternatives -->
       <div class="lg:col-span-7 bg-slate-800/50 border border-slate-700/60 p-6 rounded-2xl shadow-xl flex flex-col space-y-4">
         <div class="flex justify-between items-center">
           <div>
@@ -133,17 +130,14 @@
           </div>
         </div>
 
-        <!-- Route Selector Pill Bar -->
         <div id="routeSelectorBar" class="flex flex-wrap gap-2 text-xs">
           <span class="text-slate-400 italic">Click fetch to compute real street routing alternatives...</span>
         </div>
 
-        <!-- Leaflet Map Container -->
         <div id="routeMapContainer" class="relative">
           <div id="mapRoute"></div>
         </div>
 
-        <!-- JSON Output Container -->
         <div id="routeJsonContainer" class="hidden flex-1 bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs overflow-auto max-h-[480px]">
           <span class="text-slate-500">// Real road routing geojson metadata will appear here...</span>
         </div>
@@ -200,12 +194,51 @@
         </div>
       </div>
     </section>
+
+    <!-- TAB 3: PAYMERCH FINTECH ESCROW -->
+    <section id="fintechTab" class="hidden grid-cols-1 lg:grid-cols-12 gap-8">
+      <div class="lg:col-span-6 bg-slate-800/50 border border-slate-700/60 p-6 rounded-2xl shadow-xl space-y-4">
+        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-qrcode text-emerald-400"></i> Initialize Wholesale Escrow
+        </h2>
+        <p class="text-xs text-slate-400">Lock wholesale funds securely into PayMerch escrow before dispatching delivery units to informal spaza shops.</p>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Merchant / Spaza ID</label>
+          <input type="text" id="payMerchantId" value="spaza_site_c_01" class="w-full bg-slate-900 border border-slate-700 text-xs px-3 py-2 rounded-lg text-slate-200 focus:outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Total Order Amount (ZAR)</label>
+          <input type="number" id="payAmountZar" value="1450.00" class="w-full bg-slate-900 border border-slate-700 text-xs px-3 py-2 rounded-lg text-slate-200 focus:outline-none" />
+        </div>
+
+        <button onclick="createPayMerchEscrow()" class="w-full bg-emerald-600 hover:bg-emerald-500 font-semibold text-white py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-600/20 flex justify-center items-center gap-2 text-sm">
+          <i class="fa-solid fa-lock"></i> Lock Funds in Escrow & Generate QR
+        </button>
+      </div>
+
+      <div class="lg:col-span-6 bg-slate-800/50 border border-slate-700/60 p-6 rounded-2xl shadow-xl flex flex-col space-y-4">
+        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-link text-indigo-400"></i> Netlify App Bridge & Status
+        </h2>
+        <p class="text-xs text-slate-400">Direct link to your live Netlify mobile money payment gateway UI:</p>
+        
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+          <a href="https://paymerchmobmoney.netlify.app" target="_blank" class="block w-full text-center bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-lg text-xs transition-all">
+            <i class="fa-solid fa-external-link-alt"></i> Open PayMerch Mobile Money App (Netlify)
+          </a>
+          <div id="escrowResultBox" class="font-mono text-xs text-slate-400 p-3 bg-slate-900 rounded-lg min-h-[160px] overflow-auto">
+            // Escrow transaction payloads and QR references will display here...
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    // Real Cape Town Tile Provider (Esri Satellite & OpenStreetMap Streets combo)
     let routeMap = L.map('mapRoute').setView([-34.0200, 18.6700], 13);
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
       attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS',
@@ -222,10 +255,9 @@
     let spatialLayerGroup = L.layerGroup().addTo(spatialMap);
 
     let clickMode = 'spaza';
-    let supplierCoords = [-33.9012, 18.6291]; // Bellville Industrial Wholesaler
+    let supplierCoords = [-33.9012, 18.6291];
     let spazaStops = [];
 
-    // Real Cape Town Township Databases with Accurate Coordinates
     const townshipPresets = {
       khayelitsha: {
         center: [-34.0250, 18.6700],
@@ -319,7 +351,6 @@
     function renderMarkersOnMap() {
       routeLayerGroup.clearLayers();
 
-      // Wholesaler Marker (Gold)
       const supplierIcon = L.icon({
         iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-gold.png',
         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
@@ -329,7 +360,6 @@
        .addTo(routeLayerGroup)
        .bindPopup(`<b>🏢 Wholesaler Hub:</b> ${document.getElementById('supplierName').value}<br>GPS: ${supplierCoords}`);
 
-      // Spaza Markers (Blue)
       spazaStops.forEach((stop, idx) => {
         const spazaIcon = L.icon({
           iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
@@ -342,27 +372,35 @@
       });
     }
 
-    // Load initial khayelitsha preset on startup
     loadTownshipPreset('khayelitsha');
 
     function switchTab(tab) {
       const routeTab = document.getElementById('routeTab');
       const spatialTab = document.getElementById('spatialTab');
+      const fintechTab = document.getElementById('fintechTab');
       const tabRouteBtn = document.getElementById('tabRouteBtn');
       const tabSpatialBtn = document.getElementById('tabSpatialBtn');
+      const tabFintechBtn = document.getElementById('tabFintechBtn');
+
+      routeTab.classList.add('hidden'); routeTab.classList.remove('grid');
+      spatialTab.classList.add('hidden'); spatialTab.classList.remove('grid');
+      fintechTab.classList.add('hidden'); fintechTab.classList.remove('grid');
+
+      tabRouteBtn.className = "pb-3 px-2 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2 whitespace-nowrap";
+      tabSpatialBtn.className = "pb-3 px-2 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2 whitespace-nowrap";
+      tabFintechBtn.className = "pb-3 px-2 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2 whitespace-nowrap";
 
       if (tab === 'route') {
         routeTab.classList.remove('hidden'); routeTab.classList.add('grid');
-        spatialTab.classList.add('hidden'); spatialTab.classList.remove('grid');
-        tabRouteBtn.className = "pb-3 px-2 font-semibold text-sm border-b-2 border-indigo-500 text-indigo-400 transition-all flex items-center gap-2";
-        tabSpatialBtn.className = "pb-3 px-2 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2";
+        tabRouteBtn.className = "pb-3 px-2 font-semibold text-sm border-b-2 border-indigo-500 text-indigo-400 transition-all flex items-center gap-2 whitespace-nowrap";
         routeMap.invalidateSize();
-      } else {
+      } else if (tab === 'spatial') {
         spatialTab.classList.remove('hidden'); spatialTab.classList.add('grid');
-        routeTab.classList.add('hidden'); routeTab.classList.remove('grid');
-        tabSpatialBtn.className = "pb-3 px-2 font-semibold text-sm border-b-2 border-emerald-500 text-emerald-400 transition-all flex items-center gap-2";
-        tabRouteBtn.className = "pb-3 px-2 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2";
+        tabSpatialBtn.className = "pb-3 px-2 font-semibold text-sm border-b-2 border-emerald-500 text-emerald-400 transition-all flex items-center gap-2 whitespace-nowrap";
         spatialMap.invalidateSize();
+      } else if (tab === 'fintech') {
+        fintechTab.classList.remove('hidden'); fintechTab.classList.add('grid');
+        tabFintechBtn.className = "pb-3 px-2 font-semibold text-sm border-b-2 border-emerald-500 text-emerald-400 transition-all flex items-center gap-2 whitespace-nowrap";
       }
     }
 
@@ -421,7 +459,6 @@
     let activeRouteAlternatives = [];
     let currentRoutePolylines = [];
 
-    // Fetch Real Street Routes via OSRM Public Routing API
     async function calculateRealRoadRoutes() {
       const token = document.getElementById('authToken').value;
       const jsonOutput = document.getElementById('routeJsonContainer');
@@ -436,15 +473,13 @@
 
       renderMarkersOnMap();
 
-      // Construct OSRM coordinate string: {lng},{lat};{lng},{lat}...
       let coordsString = `${supplierCoords[1]},${supplierCoords[0]}`;
       spazaStops.forEach(s => {
         coordsString += `;${s.coordinates[1]},${s.coordinates[0]}`;
       });
-      coordsString += `;${supplierCoords[1]},${supplierCoords[0]}`; // return to depot
+      coordsString += `;${supplierCoords[1]},${supplierCoords[0]}`;
 
       try {
-        // Query public OSRM routing engine for real street paths
         const osrmRes = await fetch(`https://router.project-osrm.org/route/v1/driving/${coordsString}?overview=full&geometries=geojson`);
         const osrmData = await osrmRes.json();
 
@@ -452,11 +487,10 @@
           throw new Error("No real road route found by OSRM engine.");
         }
 
-        const primaryRouteCoords = osrmData.routes[0].geometry.coordinates.map(c => [c[1], c[0]]); // convert [lng, lat] to [lat, lng]
+        const primaryRouteCoords = osrmData.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
         const primaryDistKm = (osrmData.routes[0].distance / 1000).toFixed(1);
         const primaryEtaMins = Math.round(osrmData.routes[0].duration / 60);
 
-        // Synthesize 3 real road variants (Fastest, Bypass, Shortest)
         activeRouteAlternatives = [
           {
             name: "OSRM Fastest Arterial",
@@ -532,6 +566,32 @@
         }
       });
       plotRouteVariant(index);
+    }
+
+    // PayMerch Fintech Escrow Integration
+    async function createPayMerchEscrow() {
+      const merchantId = document.getElementById('payMerchantId').value;
+      const amount = parseFloat(document.getElementById('payAmountZar').value);
+      const resultBox = document.getElementById('escrowResultBox');
+
+      try {
+        const res = await fetch('http://localhost:8092/v1/paymerch/escrow/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            order_id: `ord_${Math.floor(Math.random() * 90000) + 10000}`,
+            merchant_id: merchantId,
+            wholesaler_id: "wh_bellville_central",
+            amount_zar: amount,
+            items_summary: ["10x Maize Meal 10kg", "5x Cooking Oil 2L", "Bulk Spaza Restock"]
+          })
+        });
+
+        const data = await res.json();
+        resultBox.innerText = JSON.stringify(data, null, 2);
+      } catch (err) {
+        resultBox.innerText = "Error connecting to PayMerch backend escrow:\n" + err.message;
+      }
     }
 
     async function runSpatialSegmentation() {
