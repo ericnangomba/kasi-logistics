@@ -1,5 +1,12 @@
+"""
+Kasi-Logistics AI Engine Backend
+Meta Global AI Developer Hackathon Submission
+"""
 import logging
+from pathlib import Path
 from fastapi import FastAPI, Depends, File, UploadFile, status, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 from app.security import verify_token, api_semaphore
 from app.agent.spatial import SAM31SpatialSegmenter, SegmentationResult
@@ -18,8 +25,24 @@ app = FastAPI(
     version="1.0.0",
 )
 
+# Define absolute paths based on project root layout
+BASE_DIR = Path(__file__).resolve().parent.parent
+STATIC_DIR = BASE_DIR / "static"
+INDEX_FILE = STATIC_DIR / "index.html"
+
+# Mount static directory using absolute path
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
 # Initialize SAM 3.1 Spatial Vision Pipeline
 segmenter = SAM31SpatialSegmenter()
+
+
+@app.get("/", include_in_schema=False)
+async def serve_dashboard():
+    """Serves the Kasi-Logistics interactive satellite map dashboard UI."""
+    if not INDEX_FILE.exists():
+        raise HTTPException(status_code=404, detail=f"Dashboard index.html not found at {INDEX_FILE}")
+    return FileResponse(str(INDEX_FILE))
 
 
 @app.get("/health", status_code=status.HTTP_200_OK)
