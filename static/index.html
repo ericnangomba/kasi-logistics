@@ -1032,15 +1032,15 @@
           const row = document.createElement('div');
           row.className = 'panel-2 px-2 py-1';
           const badge = !s.routable
-            ? '<span class="shrink-0" style="color: var(--ink-dim);">approx. area - confirm address</span>'
+            ? '<span style="color: var(--ink-dim);">approx. area - confirm address</span>'
             : (s.verified
-              ? '<span class="shrink-0 text-right"><span class="font-semibold" style="color: var(--teal);">verified location</span> <button class="text-xs font-semibold" style="color: var(--teal);" data-set-hub="' + esc(s.name) + '">Set as hub</button></span>'
-              : '<span class="shrink-0 text-right"><span class="font-semibold" style="color: var(--amber);">street estimate</span> <button class="text-xs font-semibold" style="color: var(--teal);" data-set-hub="' + esc(s.name) + '">Set as hub</button></span>');
-          row.innerHTML = '<div class="flex items-center justify-between gap-2">'
-            + '<span class="truncate font-semibold">' + esc(s.name) + '</span>' + badge + '</div>'
+              ? '<span><span class="font-semibold" style="color: var(--teal);">verified location</span> &middot; <button class="text-xs font-semibold" style="color: var(--teal);" data-set-hub="' + esc(s.name) + '">Set as hub</button></span>'
+              : '<span><span class="font-semibold" style="color: var(--amber);">street estimate</span> &middot; <button class="text-xs font-semibold" style="color: var(--teal);" data-set-hub="' + esc(s.name) + '">Set as hub</button></span>');
+          row.innerHTML = '<div class="font-semibold">' + esc(s.name) + '</div>'
             + '<div style="color: var(--ink-dim);">' + esc(s.category)
             + (s.phone ? ' &middot; ' + esc(s.phone) : '')
-            + ' &middot; ' + (s.source === 'own' ? 'own website' : 'directory listing') + '</div>';
+            + ' &middot; ' + (s.source === 'own' ? 'own website' : 'directory listing') + '</div>'
+            + '<div>' + badge + '</div>';
           list.appendChild(row);
         });
       });
@@ -1060,7 +1060,7 @@
         el.textContent = 'Verified store location.';
       } else if (hubPrecision === 'estimate') {
         el.style.color = 'var(--amber)';
-        el.textContent = 'Street-level estimate - not a confirmed entrance. Tap the map on the exact gate before routing.';
+        el.textContent = 'Street-level estimate - tap the map on the exact gate to confirm the hub pin before routing. Map tap is armed.';
       } else {
         el.style.color = 'var(--ink-dim)';
         el.textContent = 'Custom pin - your chosen hub location.';
@@ -1074,6 +1074,7 @@
       document.getElementById('supplierName').value = s.name;
       document.getElementById('supplierCoordsDisplay').innerText = s.lat + ', ' + s.lon;
       setHubNote();
+      if (hubPrecision === 'estimate') setClickMode('supplier');
       map.setView(supplierCoords, 14);
       renderMarkers();
     }
@@ -1174,7 +1175,8 @@
         return;
       }
       if (hubPrecision === 'estimate') {
-        if (!confirm('This wholesaler location is a street-level estimate, not a confirmed entrance. Cancel to tap the map on the exact gate, or press OK to route to the estimate anyway.')) return;
+        alert('This wholesaler location is a street-level estimate, not a confirmed entrance. Tap the map on the exact gate to confirm the hub pin, then route.');
+        return;
       }
       refreshStopsUI();
       const btn = document.getElementById('fetchRouteBtn');
@@ -1640,8 +1642,16 @@
     document.getElementById('updateBtn').onclick = () => window.location.reload();
 
     // ---------- Wire up ----------
-    document.getElementById('modeSpazaBtn').onclick = () => { clickMode = 'spaza'; };
-    document.getElementById('modeSupplierBtn').onclick = () => { clickMode = 'supplier'; };
+    function setClickMode(mode) {
+      clickMode = mode;
+      const spazaBtn = document.getElementById('modeSpazaBtn');
+      const supplierBtn = document.getElementById('modeSupplierBtn');
+      [spazaBtn, supplierBtn].forEach(b => { b.style.outline = ''; });
+      const active = mode === 'supplier' ? supplierBtn : spazaBtn;
+      active.style.outline = '2px solid ' + (mode === 'supplier' ? 'var(--amber)' : 'var(--teal)');
+    }
+    document.getElementById('modeSpazaBtn').onclick = () => setClickMode('spaza');
+    document.getElementById('modeSupplierBtn').onclick = () => setClickMode('supplier');
     document.getElementById('clearStopsBtn').onclick = () => { spazaStops = []; refreshStopsUI(); };
     document.getElementById('fetchRouteBtn').onclick = fetchRoute;
     document.getElementById('saveTripBtn').onclick = saveCurrentTrip;
