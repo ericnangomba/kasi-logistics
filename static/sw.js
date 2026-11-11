@@ -10,12 +10,12 @@
      route survives a signal drop. */
 'use strict';
 
-const SHELL_CACHE = 'kasi-shell-v2';
+const SHELL_CACHE = 'kasi-shell-v3';
 const CDN_CACHE = 'kasi-cdn-v1';
 const TILE_CACHE = 'kasi-tiles-v1';
 const ROUTE_CACHE = 'kasi-routes-v1';
 
-const SHELL_URLS = ['/', '/index.html', '/manifest.webmanifest', '/vendor/tailwind.css', '/icons/icon-192.png', '/icons/icon-512.png', '/vendor/leaflet/leaflet.css', '/vendor/leaflet/leaflet.js', '/vendor/leaflet/images/layers-2x.png', '/vendor/leaflet/images/marker-shadow.png', '/vendor/leaflet/images/marker-icon-2x.png', '/vendor/leaflet/images/marker-icon.png', '/vendor/leaflet/images/layers.png', '/vendor/fontawesome/css/all.min.css', '/vendor/fontawesome/webfonts/fa-brands-400.woff2', '/vendor/fontawesome/webfonts/fa-regular-400.woff2', '/vendor/fontawesome/webfonts/fa-v4compatibility.woff2', '/vendor/fontawesome/webfonts/fa-solid-900.woff2'];
+const SHELL_URLS = ['/', '/index.html', '/manifest.webmanifest', '/vendor/tailwind.css', '/icons/icon-180.png', '/icons/icon-192.png', '/icons/icon-512.png', '/vendor/leaflet/leaflet.css', '/vendor/leaflet/leaflet.js', '/vendor/leaflet/images/layers-2x.png', '/vendor/leaflet/images/marker-shadow.png', '/vendor/leaflet/images/marker-icon-2x.png', '/vendor/leaflet/images/marker-icon.png', '/vendor/leaflet/images/layers.png', '/vendor/fontawesome/css/all.min.css', '/vendor/fontawesome/webfonts/fa-brands-400.woff2', '/vendor/fontawesome/webfonts/fa-regular-400.woff2', '/vendor/fontawesome/webfonts/fa-v4compatibility.woff2', '/vendor/fontawesome/webfonts/fa-solid-900.woff2'];
 
 const CDN_HOSTS = ['cdn.tailwindcss.com', 'cdnjs.cloudflare.com', 'unpkg.com', 'raw.githubusercontent.com'];
 const TILE_HOSTS = ['tile.openstreetmap.org', 'a.tile.openstreetmap.org', 'b.tile.openstreetmap.org', 'c.tile.openstreetmap.org', 'server.arcgisonline.com'];

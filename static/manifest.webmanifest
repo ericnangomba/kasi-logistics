@@ -1,13 +1,16 @@
 {
+  "id": "/",
   "name": "Kasi-Logistics",
   "short_name": "KasiLog",
   "description": "Township delivery routing and offline-first navigation for spaza shop supply runs.",
+  "lang": "en",
+  "dir": "ltr",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait",
   "background_color": "#0a0f1e",
   "theme_color": "#0a0f1e",
+  "categories": ["navigation", "utilities"],
   "icons": [
     { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },

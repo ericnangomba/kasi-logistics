@@ -5,9 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#0a0f1e" />
   <meta name="description" content="Kasi-Logistics - township delivery routing and offline-first navigation for spaza shop supply runs." />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="KasiLog" />
+  <meta name="application-name" content="KasiLog" />
+  <meta name="format-detection" content="telephone=no" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="icon" type="image/png" href="/icons/icon-192.png" />
-  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="/icons/icon-180.png" />
+  <link rel="apple-touch-startup-image" href="/icons/splash-1170x2532.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)" />
+  <link rel="apple-touch-startup-image" href="/icons/splash-1179x2556.png" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)" />
+  <link rel="apple-touch-startup-image" href="/icons/splash-1206x2622.png" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3)" />
+  <link rel="apple-touch-startup-image" href="/icons/splash-1284x2778.png" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)" />
+  <link rel="apple-touch-startup-image" href="/icons/splash-1290x2796.png" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)" />
+  <link rel="apple-touch-startup-image" href="/icons/splash-1320x2868.png" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3)" />
+  <link rel="apple-touch-startup-image" href="/icons/splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" />
+  <link rel="apple-touch-startup-image" href="/icons/splash-1242x2688.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)" />
+  <link rel="apple-touch-startup-image" href="/icons/splash-750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" />
+  <link rel="apple-touch-startup-image" href="/icons/splash-828x1792.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)" />
   <title>Kasi-Logistics | Township Delivery Navigation</title>
   <link rel="stylesheet" href="/vendor/tailwind.css" />
   <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css" />
@@ -99,6 +115,23 @@
     }
     select:focus, input:focus, textarea:focus { outline: 2px solid rgba(251, 191, 36, 0.5); }
     .touch-target { min-height: 44px; }
+    html { overscroll-behavior-y: none; }
+    body { -webkit-tap-highlight-color: transparent; }
+    #app { padding-top: env(safe-area-inset-top, 0px); }
+    @media (max-width: 1023.5px) {
+      #app { padding-bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px)); }
+      #mobileNav { padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px)); }
+    }
+    #mobileNavBtns .nav-btn { flex: 1 1 0; min-width: 0; padding-left: 0.25rem; padding-right: 0.25rem; }
+    #mobileNavBtns .nav-btn span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+    .update-banner {
+      position: fixed; left: 50%; transform: translateX(-50%);
+      bottom: 1.25rem; z-index: 1200;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); border-radius: 0.75rem;
+    }
+    @media (max-width: 1023.5px) {
+      .update-banner { bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)); }
+    }
   </style>
 </head>
 <body class="min-h-screen">
@@ -282,6 +315,14 @@
             <i class="fa-solid fa-circle-info mr-1"></i>
             Offline navigation follows the saved route with GPS. Searching new places, fetching new routes and viewing unvisited map areas need a connection.
           </div>
+          <div class="panel-2 p-3 space-y-2">
+            <div class="flex items-center justify-between gap-3">
+              <span class="text-sm shrink-0">Install on this phone</span>
+              <span id="installState" class="text-sm font-bold text-right" style="color: var(--ink-dim);">Checking…</span>
+            </div>
+            <button id="installBtn" class="btn-primary text-xs touch-target w-full hidden"><i class="fa-solid fa-arrow-down-to-bracket mr-1"></i> Install Kasi-Logistics</button>
+            <p id="installHint" class="text-xs hidden" style="color: var(--ink-dim);"></p>
+          </div>
         </div>
       </div>
     </section>
@@ -321,6 +362,10 @@
          style="background: rgba(10,15,30,0.92); backdrop-filter: blur(12px); border-top: 1px solid var(--edge);">
       <div class="flex justify-around max-w-xl mx-auto" id="mobileNavBtns"></div>
     </nav>
+
+    <div id="updateBanner" class="update-banner hidden">
+      <button id="updateBtn" class="btn-primary text-sm px-4 py-2 touch-target"><i class="fa-solid fa-rotate mr-1"></i><span id="updateBannerText">Update ready - tap to reload</span></button>
+    </div>
   </div>
 
   <script src="/vendor/leaflet/leaflet.js"></script>
@@ -829,6 +874,7 @@
       document.getElementById('gpsPill').innerHTML = '<i class="fa-solid fa-location-crosshairs mr-1"></i>GPS starting…';
     }
     function stopGps() {
+      releaseWakeLock();
       if (gpsWatchId !== null) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
       document.getElementById('gpsToggleBtn').innerHTML = '<i class="fa-solid fa-satellite-dish mr-1"></i> Start GPS';
       document.getElementById('gpsPill').innerHTML = '<i class="fa-solid fa-location-crosshairs mr-1"></i>GPS off';
@@ -885,6 +931,7 @@
       switchTab('drive');
       renderStepsList(document.getElementById('driveStepsList'), activeRoute.steps);
       startGps();
+      requestWakeLock();
       if (navStaleTimer) clearInterval(navStaleTimer);
       navStaleTimer = setInterval(() => { if (nav) updateNavigation(); }, 5000);
       updateNavigation();
@@ -1032,16 +1079,82 @@
     window.addEventListener('online', updateConnUI);
     window.addEventListener('offline', updateConnUI);
 
+    // Screen wake lock: keep the display on during live navigation (best effort).
+    let wakeLock = null;
+    async function requestWakeLock() {
+      if (!('wakeLock' in navigator) || wakeLock) return;
+      try {
+        wakeLock = await navigator.wakeLock.request('screen');
+        wakeLock.addEventListener('release', () => { wakeLock = null; });
+      } catch (err) { /* screen wake is best-effort */ }
+    }
+    function releaseWakeLock() { if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; } }
+
+    // Install prompt (Android/desktop) and iOS Add-to-Home-Screen guidance.
+    let deferredInstallPrompt = null;
+    const isIosDevice = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    function renderInstallUI() {
+      const stateEl = document.getElementById('installState');
+      const btn = document.getElementById('installBtn');
+      const hint = document.getElementById('installHint');
+      if (isStandaloneMode) {
+        stateEl.innerText = 'Installed'; stateEl.style.color = 'var(--green)';
+        btn.classList.add('hidden'); hint.classList.add('hidden');
+        return;
+      }
+      stateEl.innerText = 'Not installed'; stateEl.style.color = 'var(--ink-dim)';
+      if (deferredInstallPrompt) {
+        btn.classList.remove('hidden'); hint.classList.add('hidden');
+      } else {
+        btn.classList.add('hidden'); hint.classList.remove('hidden');
+        hint.innerHTML = isIosDevice
+          ? 'On iPhone: open in Safari, tap Share <i class="fa-solid fa-arrow-up-from-bracket"></i>, then "Add to Home Screen".'
+          : 'Use your browser menu and choose "Add to Home screen" / "Install app" if offered.';
+      }
+    }
+    window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredInstallPrompt = e; renderInstallUI(); });
+    window.addEventListener('appinstalled', () => { deferredInstallPrompt = null; renderInstallUI(); });
+
+    // Service worker with a driver-safe update flow: never reload mid-navigation.
+    let swUpdateReady = false;
+    let swReloadArmed = false;
+    function showUpdateBanner(msg) {
+      if (msg) document.getElementById('updateBannerText').innerText = msg;
+      document.getElementById('updateBanner').classList.remove('hidden');
+    }
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').then(() => navigator.serviceWorker.ready).then(() => {
-        document.getElementById('swStatus').innerText = 'Ready';
-        document.getElementById('swStatus').style.color = 'var(--green)';
+      navigator.serviceWorker.register('/sw.js').then((reg) => {
+        navigator.serviceWorker.ready.then(() => {
+          document.getElementById('swStatus').innerText = 'Ready';
+          document.getElementById('swStatus').style.color = 'var(--green)';
+        }).catch(() => {});
+        if (reg.waiting && navigator.serviceWorker.controller) { swUpdateReady = true; showUpdateBanner('Update ready - tap to reload'); }
+        reg.addEventListener('updatefound', () => {
+          const nw = reg.installing;
+          if (!nw) return;
+          nw.addEventListener('statechange', () => {
+            if (nw.state === 'installed' && navigator.serviceWorker.controller) { swUpdateReady = true; showUpdateBanner('Update ready - tap to reload'); }
+          });
+        });
+        // Phones keep PWAs alive for days: check for updates on foregrounding and hourly.
+        document.addEventListener('visibilitychange', () => {
+          if (!document.hidden) { reg.update().catch(() => {}); if (nav) requestWakeLock(); }
+        });
+        setInterval(() => reg.update().catch(() => {}), 60 * 60 * 1000);
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (nav && !nav.arrived) { showUpdateBanner('Update installed - tap to reload after this trip'); return; }
+          if (!swUpdateReady || swReloadArmed) return;
+          swReloadArmed = true;
+          window.location.reload();
+        });
       }).catch(() => {
         document.getElementById('swStatus').innerText = 'Not available';
       });
     } else {
       document.getElementById('swStatus').innerText = 'Not supported';
     }
+    document.getElementById('updateBtn').onclick = () => window.location.reload();
 
     // ---------- Wire up ----------
     document.getElementById('modeSpazaBtn').onclick = () => { clickMode = 'spaza'; };
@@ -1062,6 +1175,7 @@
     loadTownshipPreset('khayelitsha');
     renderTrips();
     updateConnUI();
+    renderInstallUI();
   </script>
 </body>
 </html>
