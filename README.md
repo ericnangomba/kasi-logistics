@@ -1,5 +1,15 @@
-# 🌍 Kasi-Logistics & PayMerch AI
-### Meta SAM 3.1 Powered Township Logistics & Closed-Loop Fintech Escrow
+# Kasi-Logistics & PayMerch AI
+### Township delivery routing with offline-first navigation
+
+> **Current status (Nov 2026)**
+> - **Working today:** live map (OpenStreetMap + satellite toggle), real road routing with turn-by-turn steps via the OSRM demo server, real route alternatives when OSRM returns them, GPS live-position navigation, saved offline trips, and an installable offline-tolerant app shell (PWA).
+> - **Concept / not connected:** the SAM 3.1 alleyway vision tab (no model backend deployed) and the PayMerch escrow tab (in-memory demo backend, no real money).
+> - The OSRM demo server is for development use; production routing needs a self-hosted OSRM or another OSM-based routing service.
+> - Offline scope: saved routes can guide with a recent device GPS fix (within 60 m reported accuracy); real-phone GPS is not yet verified. Stale, poor-accuracy or off-route fixes pause maneuver guidance. No offline rerouting. Fetching new routes or unviewed map areas needs a connection.
+> - App CSS, icon fonts and Leaflet are local assets pre-cached for offline use; recently viewed tiles may be cached but this is not a full offline map. Browser storage can be evicted.
+
+---
+### Original hackathon concept (see status above for what is live)
 
 **Kasi-Logistics & PayMerch** is an enterprise-grade spatial dispatching and closed-loop fintech escrow platform engineered for unmapped informal settlements, wholesale supply chains, and spaza merchant networks across the Western Cape, South Africa.
 
@@ -9,7 +19,7 @@ By pairing **Meta’s Segment Anything Model 3.1 (SAM 3.1)** computer vision fra
 
 ## 👁️ Meta SAM 3.1 Spatial Vision Integration
 
-Informal settlements across Cape Town (Khayelitsha, Gugulethu, Langa) consist of dense, unmapped alleyways inaccessible to standard GPS navigation systems. Kasi-Logistics deploys **Meta SAM 3.1** to solve spatial partitioning and micro-corridor navigation:
+Informal settlements across Cape Town (Khayelitsha, Gugulethu, Langa) consist of dense, unmapped alleyways inaccessible to standard GPS navigation systems. Kasi-Logistics **plans to use** Meta SAM 3.1-style segmentation for spatial partitioning and micro-corridor navigation (not yet deployed):
 
 * **Zero-Shot Alleyway Segmentation:** Runs SAM 3.1 spatial prompt processing on aerial imagery and ground footage to detect traversable widths, informal paths, and obstacle nodes.
 * **Micro-Zone Coordinate Clustering:** Extends SAM 3.1 spatial partitioning logic into coordinate clustering algorithms, grouping unstructured spaza delivery stops into optimized delivery corridors.

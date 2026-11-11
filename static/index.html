@@ -2,243 +2,332 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kasi-Logistics | Real-World Spatial & Fintech Control Center</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0f1e" />
+  <meta name="description" content="Kasi-Logistics - township delivery routing and offline-first navigation for spaza shop supply runs." />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" type="image/png" href="/icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <title>Kasi-Logistics | Township Delivery Navigation</title>
+  <link rel="stylesheet" href="/vendor/tailwind.css" />
+  <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css" />
+  <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
   <style>
-    #mapRoute, #mapSpatial { height: 520px; width: 100%; border-radius: 0.75rem; z-index: 10; }
-    .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: #0f172a; color: #f8fafc; border: 1px solid #334155; }
+    *, *::before, *::after { box-sizing: border-box; }
+    .tab-page > *, .panel, .panel-2, .step-row > span { min-width: 0; }
+    .panel, .panel-2 { overflow-wrap: anywhere; }
+    #tripsList > div { flex-wrap: wrap; }
+    #tripsList > div > div:first-child { flex: 1 1 140px; min-width: 0; }
+    #tripsList .truncate { white-space: normal; overflow-wrap: anywhere; }
+    @media (max-width: 400px) { .nav-btn { padding-left: .55rem; padding-right: .55rem; } .stat-big { font-size: 1.35rem !important; } }
+    :root {
+      --bg: #0a0f1e;
+      --panel: #111a2e;
+      --panel-2: #16223c;
+      --edge: #243352;
+      --ink: #e8eefc;
+      --ink-dim: #93a1c0;
+      --amber: #fbbf24;
+      --teal: #2dd4bf;
+      --red: #f87171;
+      --green: #34d399;
+    }
+    html, body { background: var(--bg); color: var(--ink); height: 100%; }
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    .panel { background: var(--panel); border: 1px solid var(--edge); border-radius: 1rem; }
+    .panel-2 { background: var(--panel-2); border: 1px solid var(--edge); border-radius: 0.75rem; }
+    .brand-mark {
+      background: linear-gradient(135deg, var(--amber), #f97316);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--amber), #f59e0b);
+      color: #1a1206; font-weight: 700;
+      border-radius: 0.75rem; padding: 0.8rem 1rem;
+      box-shadow: 0 4px 18px rgba(251, 191, 36, 0.25);
+      transition: transform .08s ease, box-shadow .15s ease;
+    }
+    .btn-primary:hover { box-shadow: 0 6px 22px rgba(251, 191, 36, 0.35); }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-ghost {
+      background: var(--panel-2); color: var(--ink); border: 1px solid var(--edge);
+      border-radius: 0.75rem; padding: 0.6rem 0.9rem; transition: background .15s ease;
+    }
+    .btn-ghost:hover { background: #1c2a49; }
+    .nav-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      padding: 0.55rem 0.9rem; border-radius: 0.75rem; color: var(--ink-dim);
+      font-size: 0.7rem; font-weight: 600; letter-spacing: 0.02em;
+    }
+    .nav-btn.active { color: #1a1206; background: linear-gradient(135deg, var(--amber), #f59e0b); }
+    .pill { border-radius: 999px; padding: 0.2rem 0.65rem; font-size: 0.7rem; font-weight: 700; }
+    .pill-online { background: rgba(52, 211, 153, 0.15); color: var(--green); border: 1px solid rgba(52, 211, 153, 0.4); }
+    .pill-offline { background: rgba(248, 113, 113, 0.15); color: var(--red); border: 1px solid rgba(248, 113, 113, 0.4); }
+    .maneuver-card {
+      background: linear-gradient(135deg, #16223c, #101a30);
+      border: 1px solid var(--edge); border-radius: 1rem;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+    }
+    .gps-dot {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: #3b82f6; border: 3px solid #fff;
+      box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5);
+      animation: gps-pulse 2s infinite;
+    }
+    @keyframes gps-pulse {
+      0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.45); }
+      70% { box-shadow: 0 0 0 16px rgba(59, 130, 246, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+    }
+    .step-row.active-step { border-color: var(--amber); background: rgba(251, 191, 36, 0.08); }
+    .leaflet-container { background: #0a0f1e; font-family: inherit; }
+    .tab-page { display: none; }
+    .tab-page.active { display: block; }
+    @media (min-width: 1024px) {
+      .tab-page.active[data-layout="split"] { display: grid; grid-template-columns: 380px 1fr; gap: 1rem; }
+    }
+    .stat-big { font-size: 1.6rem; font-weight: 800; line-height: 1.1; }
+    .scroll-slim::-webkit-scrollbar { width: 6px; }
+    .scroll-slim::-webkit-scrollbar-thumb { background: var(--edge); border-radius: 3px; }
+    .demo-banner {
+      background: rgba(251, 191, 36, 0.08); border: 1px dashed rgba(251, 191, 36, 0.45);
+      color: var(--amber); border-radius: 0.75rem;
+    }
+    select, input[type="text"], input[type="password"], input[type="number"], textarea {
+      background: var(--panel-2); border: 1px solid var(--edge); color: var(--ink);
+      border-radius: 0.6rem; padding: 0.55rem 0.7rem; font-size: 0.85rem; width: 100%;
+    }
+    select:focus, input:focus, textarea:focus { outline: 2px solid rgba(251, 191, 36, 0.5); }
+    .touch-target { min-height: 44px; }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen font-sans antialiased">
+<body class="min-h-screen">
+  <div id="app" class="max-w-7xl mx-auto px-3 sm:px-5 pb-28 lg:pb-8">
 
-  <!-- Navigation Bar -->
-  <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
-    <div class="flex items-center gap-3">
-      <div class="bg-indigo-600 p-2 rounded-lg text-white font-bold text-xl">
-        <i class="fa-solid fa-truck-fast"></i>
+    <!-- Header -->
+    <header class="flex items-center justify-between py-4 gap-3 flex-wrap">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg,#fbbf24,#f97316);">
+          <i class="fa-solid fa-route text-lg" style="color:#1a1206;"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-extrabold tracking-tight">Kasi<span class="brand-mark">Logistics</span></h1>
+          <p class="text-xs" style="color: var(--ink-dim);">Township delivery routing, built for weak signal</p>
+        </div>
       </div>
-      <div>
-        <h1 class="text-xl font-bold tracking-tight text-white">Kasi-Logistics & PayMerch AI</h1>
-        <p class="text-xs text-slate-400">Township Logistics & Closed-Loop Escrow Engine</p>
+      <div class="flex items-center gap-2">
+        <span id="connPill" class="pill pill-online"><i class="fa-solid fa-signal mr-1"></i>Online</span>
+        <span id="gpsPill" class="pill" style="background: var(--panel-2); border: 1px solid var(--edge); color: var(--ink-dim);">
+          <i class="fa-solid fa-location-crosshairs mr-1"></i>GPS off
+        </span>
       </div>
-    </div>
-    <div class="flex items-center gap-3">
-      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Engine Online (API-ready)
-      </span>
-      <input type="password" id="authToken" value="default-dev-token-change-me" placeholder="Bearer Token" class="bg-slate-800 border border-slate-700 text-xs text-slate-200 px-3 py-1.5 rounded-lg focus:outline-none focus:border-indigo-500 w-36" />
-    </div>
-  </header>
+    </header>
 
-  <main class="max-w-7xl mx-auto px-6 py-8">
-    <!-- Tab Controls -->
-    <div class="flex gap-4 border-b border-slate-800 mb-8 overflow-x-auto">
-      <button id="tabRouteBtn" onclick="switchTab('route')" class="pb-3 px-2 font-semibold text-sm border-b-2 border-indigo-500 text-indigo-400 transition-all flex items-center gap-2 whitespace-nowrap">
-        <i class="fa-solid fa-route"></i> Real-Road Street Dispatcher
-      </button>
-      <button id="tabSpatialBtn" onclick="switchTab('spatial')" class="pb-3 px-2 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2 whitespace-nowrap">
-        <i class="fa-solid fa-layer-group"></i> SAM 3.1 Spatial Vision
-      </button>
-      <button id="tabFintechBtn" onclick="switchTab('fintech')" class="pb-3 px-2 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2 whitespace-nowrap">
-        <i class="fa-solid fa-wallet text-emerald-400"></i> PayMerch Escrow & Mobile Money
-      </button>
-    </div>
+    <!-- Desktop nav -->
+    <nav class="hidden lg:flex gap-2 mb-4" id="deskNav"></nav>
 
-    <!-- TAB 1: REAL-ROAD ROUTING -->
-    <section id="routeTab" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      <div class="lg:col-span-5 bg-slate-800/50 border border-slate-700/60 p-6 rounded-2xl shadow-xl space-y-4">
-        <h2 class="text-lg font-bold text-white flex items-center gap-2">
-          <i class="fa-solid fa-map-pin text-indigo-400"></i> Real Township Presets & Landmarks
-        </h2>
-        <p class="text-xs text-slate-400">Select real Cape Town regional hubs or click any exact point on the map to add real-world spaza delivery stops.</p>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Load Real Settlement Hub</label>
-          <select id="townshipPreset" onchange="loadTownshipPreset(this.value)" class="w-full bg-slate-900 border border-slate-700 text-xs px-3 py-2 rounded-lg text-slate-200 focus:outline-none">
-            <option value="">-- Select Real Cape Town Area --</option>
-            <option value="khayelitsha" selected>Khayelitsha (Site C, Harare, Kuyasa)</option>
-            <option value="gugulethu">Gugulethu (NY Section & Gugulethu Square)</option>
-            <option value="mitchellsplain">Mitchells Plain (Town Centre & Mandalay)</option>
-            <option value="langa">Langa (Zone 23 & Washington St)</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Map Click Action</label>
-          <div class="grid grid-cols-2 gap-2">
-            <button type="button" onclick="setClickMode('spaza')" id="modeSpazaBtn" class="py-2 px-3 rounded-lg text-xs font-medium bg-indigo-600 text-white border border-indigo-500 transition-all">
-              <i class="fa-solid fa-store"></i> Click adds Spaza
-            </button>
-            <button type="button" onclick="setClickMode('supplier')" id="modeSupplierBtn" class="py-2 px-3 rounded-lg text-xs font-medium bg-slate-900 text-slate-300 border border-slate-700 hover:bg-slate-800 transition-all">
-              <i class="fa-solid fa-building"></i> Click sets Supplier
-            </button>
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Active Wholesaler Hub</label>
-          <input type="text" id="supplierName" value="Bellville MegaWholesale Distribution Centre" class="w-full bg-slate-900 border border-slate-700 text-xs px-3 py-2 rounded-lg text-slate-200 focus:outline-none mb-1" />
-          <div class="text-[10px] text-slate-400">Real GPS: <span id="supplierCoordsDisplay">-33.9012, 18.6291</span></div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
+    <!-- PLAN -->
+    <section id="tab-plan" class="tab-page active" data-layout="split">
+      <div class="space-y-4">
+        <div class="panel p-4 space-y-4">
           <div>
-            <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Time of Day</label>
-            <select id="timeOfDay" class="w-full bg-slate-900 border border-slate-700 text-xs px-3 py-2 rounded-lg text-slate-200 focus:outline-none">
-              <option value="morning_peak">Morning Rush (07:30)</option>
-              <option value="midday" selected>Midday Clear (12:00)</option>
-              <option value="evening_peak">Evening Rush (17:30)</option>
-            </select>
+            <h2 class="font-bold text-sm mb-1"><i class="fa-solid fa-map-location-dot mr-2" style="color: var(--amber);"></i>Plan a supply run</h2>
+            <p class="text-xs" style="color: var(--ink-dim);">Pick a settlement hub or tap the map to place stops.</p>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Day of Week</label>
-            <select id="dayOfWeek" class="w-full bg-slate-900 border border-slate-700 text-xs px-3 py-2 rounded-lg text-slate-200 focus:outline-none">
-              <option value="weekday">Standard Weekday</option>
-              <option value="saturday" selected>Saturday Bulk Market Day</option>
-            </select>
+            <label class="text-xs font-semibold block mb-1" style="color: var(--ink-dim);">SETTLEMENT HUB</label>
+            <select id="presetSelect" class="touch-target"></select>
           </div>
-        </div>
-
-        <div>
-          <div class="flex justify-between items-center mb-1">
-            <label class="block text-xs font-semibold text-slate-300 uppercase">Spaza Stops (<span id="spazaCount">3</span>)</label>
-            <button onclick="clearAllSpazas()" class="text-[10px] text-rose-400 hover:underline">Clear All</button>
-          </div>
-          <textarea id="stopsJson" rows="5" class="w-full bg-slate-900 font-mono text-[11px] border border-slate-700 text-slate-200 p-2 rounded-lg focus:outline-none"></textarea>
-        </div>
-
-        <button onclick="calculateRealRoadRoutes()" class="w-full bg-indigo-600 hover:bg-indigo-500 font-semibold text-white py-2.5 rounded-xl transition-all shadow-lg shadow-indigo-600/20 flex justify-center items-center gap-2 text-sm">
-          <i class="fa-solid fa-road"></i> Fetch Real Street Network Routes (OSRM)
-        </button>
-      </div>
-
-      <div class="lg:col-span-7 bg-slate-800/50 border border-slate-700/60 p-6 rounded-2xl shadow-xl flex flex-col space-y-4">
-        <div class="flex justify-between items-center">
           <div>
-            <h2 class="text-lg font-bold text-white flex items-center gap-2">
-              <i class="fa-solid fa-map-location-dot text-indigo-400"></i> Live Street-Level Map
-            </h2>
-            <p class="text-[11px] text-emerald-400">💡 Routes follow real physical roads via OpenStreetMap network.</p>
-          </div>
-          <div class="flex bg-slate-900 p-1 rounded-lg border border-slate-700 text-xs">
-            <button onclick="switchRouteView('map')" id="btnViewMap" class="px-3 py-1 rounded-md bg-indigo-600 text-white font-medium transition-all">Map</button>
-            <button onclick="switchRouteView('json')" id="btnViewJson" class="px-3 py-1 rounded-md text-slate-400 hover:text-white transition-all">JSON Payload</button>
-          </div>
-        </div>
-
-        <div id="routeSelectorBar" class="flex flex-wrap gap-2 text-xs">
-          <span class="text-slate-400 italic">Click fetch to compute real street routing alternatives...</span>
-        </div>
-
-        <div id="routeMapContainer" class="relative">
-          <div id="mapRoute"></div>
-        </div>
-
-        <div id="routeJsonContainer" class="hidden flex-1 bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs overflow-auto max-h-[480px]">
-          <span class="text-slate-500">// Real road routing geojson metadata will appear here...</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 2: SPATIAL VISION -->
-    <section id="spatialTab" class="hidden grid-cols-1 lg:grid-cols-12 gap-8">
-      <div class="lg:col-span-5 bg-slate-800/50 border border-slate-700/60 p-6 rounded-2xl shadow-xl space-y-5">
-        <h2 class="text-lg font-bold text-white flex items-center gap-2">
-          <i class="fa-solid fa-eye text-emerald-400"></i> SAM 3.1 Unmapped Alleyway Scanner
-        </h2>
-        <p class="text-xs text-slate-400 leading-relaxed">
-          Upload aerial drone captures or local camera frames of informal settlement clusters to isolate passable pedestrian and light delivery alleys.
-        </p>
-
-        <div class="border-2 border-dashed border-slate-700 hover:border-emerald-500/50 transition-all rounded-2xl p-8 text-center cursor-pointer bg-slate-900/50">
-          <input type="file" id="imageryFile" class="hidden" onchange="previewImage(event)" accept="image/*" />
-          <label for="imageryFile" class="cursor-pointer space-y-3 block">
-            <i class="fa-solid fa-cloud-arrow-up text-3xl text-emerald-400"></i>
-            <div class="text-xs text-slate-300">
-              <span class="font-semibold text-emerald-400">Click to upload</span> or drag and drop
+            <label class="text-xs font-semibold block mb-1" style="color: var(--ink-dim);">MAP TAP SETS</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button id="modeSpazaBtn" class="btn-ghost touch-target text-sm"><i class="fa-solid fa-store mr-1" style="color: var(--teal);"></i> Spaza stop</button>
+              <button id="modeSupplierBtn" class="btn-ghost touch-target text-sm"><i class="fa-solid fa-warehouse mr-1" style="color: var(--amber);"></i> Wholesaler</button>
             </div>
-            <p class="text-[10px] text-slate-500">PNG, JPG or WEBP (Max 10MB)</p>
-          </label>
+          </div>
+          <div class="panel-2 p-3">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-semibold" style="color: var(--ink-dim);">WHOLESALER HUB</span>
+              <span id="supplierCoordsDisplay" class="text-xs font-mono" style="color: var(--teal);"></span>
+            </div>
+            <input id="supplierName" type="text" class="text-sm" />
+          </div>
+          <div class="panel-2 p-3">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold" style="color: var(--ink-dim);">SPAZA STOPS (<span id="spazaCount">0</span>)</span>
+              <button id="clearStopsBtn" class="text-xs font-semibold" style="color: var(--red);">Clear all</button>
+            </div>
+            <div id="stopsList" class="space-y-1 max-h-36 overflow-y-auto scroll-slim text-sm"></div>
+            <details class="mt-2">
+              <summary class="text-xs cursor-pointer" style="color: var(--ink-dim);">Edit stops as JSON (advanced)</summary>
+              <textarea id="stopsJson" rows="6" class="mt-2 font-mono text-xs"></textarea>
+            </details>
+          </div>
+          <button id="fetchRouteBtn" class="btn-primary w-full touch-target text-base">
+            <i class="fa-solid fa-road mr-2"></i>Get road route &amp; turn-by-turn
+          </button>
+          <p id="planHint" class="text-xs" style="color: var(--ink-dim);">Routes use the OSRM engine on the OpenStreetMap road network. Turn steps included.</p>
         </div>
 
-        <div id="imagePreviewContainer" class="hidden relative rounded-xl overflow-hidden border border-slate-700 max-h-48">
-          <img id="imagePreview" src="" class="w-full object-cover" alt="Township Imagery Preview" />
+        <div id="routeResults" class="panel p-4 hidden">
+          <h3 class="font-bold text-sm mb-3"><i class="fa-solid fa-signs-post mr-2" style="color: var(--teal);"></i>Route options</h3>
+          <div id="alternativesBar" class="space-y-2 mb-4"></div>
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="text-xs font-bold" style="color: var(--ink-dim);">TURN-BY-TURN</h4>
+            <button id="saveTripBtn" class="btn-ghost text-xs touch-target"><i class="fa-solid fa-download mr-1"></i> Save for offline</button>
+          </div>
+          <div id="stepsList" class="space-y-1 max-h-64 overflow-y-auto scroll-slim"></div>
+          <button id="startNavFromPlanBtn" class="btn-primary w-full touch-target mt-4"><i class="fa-solid fa-play mr-2"></i>Start navigation</button>
         </div>
-
-        <button onclick="runSpatialSegmentation()" class="w-full bg-emerald-600 hover:bg-emerald-500 font-semibold text-white py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-600/20 flex justify-center items-center gap-2 text-sm">
-          <i class="fa-solid fa-microchip"></i> Execute SAM 3.1 Node Segmentation
-        </button>
       </div>
 
-      <div class="lg:col-span-7 bg-slate-800/50 border border-slate-700/60 p-6 rounded-2xl shadow-xl flex flex-col space-y-4">
-        <div class="flex justify-between items-center">
-          <h2 class="text-lg font-bold text-white flex items-center gap-2">
-            <i class="fa-solid fa-chart-pie text-emerald-400"></i> Segmented Traversable Nodes
-          </h2>
-          <div class="flex bg-slate-900 p-1 rounded-lg border border-slate-700 text-xs">
-            <button onclick="switchSpatialView('map')" id="btnSpatialMap" class="px-3 py-1 rounded-md bg-emerald-600 text-white font-medium transition-all">Map View</button>
-            <button onclick="switchSpatialView('json')" id="btnSpatialJson" class="px-3 py-1 rounded-md text-slate-400 hover:text-white transition-all">JSON Payload</button>
+      <div class="panel overflow-hidden" id="planMapSlot" style="min-height: 420px;">
+        <div id="map" class="w-full" style="height: 100%; min-height: 420px;"></div>
+      </div>
+    </section>
+
+    <!-- DRIVE -->
+    <section id="tab-drive" class="tab-page" data-layout="split">
+      <div class="space-y-4">
+        <div id="navCard" class="maneuver-card p-5">
+          <div class="flex items-center gap-4">
+            <div id="navManeuverIcon" class="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0" style="background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.4);">
+              <i class="fa-solid fa-arrow-up text-2xl" style="color: var(--amber);"></i>
+            </div>
+            <div class="min-w-0">
+              <div class="text-xs" style="color: var(--ink-dim);">UPCOMING MANEUVER</div>
+              <div id="navDistance" class="stat-big brand-mark">--</div>
+              <div id="navInstruction" class="font-semibold text-sm mt-1">Plan a route or load a saved trip to start navigating.</div>
+            </div>
+          </div>
+          <div id="navNextStep" class="text-xs mt-3" style="color: var(--ink-dim);"></div>
+        </div>
+
+        <div id="offRouteNote" class="demo-banner p-3 text-sm hidden" style="border-color: rgba(248,113,113,0.5); color: var(--red);">
+          <i class="fa-solid fa-route mr-1"></i>
+          <b>Off the planned route.</b> Guidance paused. Check the map and rejoin the route only when safe. Recalculating a new route needs a connection - this app will not guess a new one offline.
+        </div>
+        <div id="staleGpsNote" class="demo-banner p-3 text-sm hidden">
+          <i class="fa-solid fa-satellite mr-1"></i>
+          Waiting for a recent, accurate GPS fix. Guidance is paused; the map may show your last known position.
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+          <div class="panel-2 p-3 text-center">
+            <div class="text-xs" style="color: var(--ink-dim);">REMAINING</div>
+            <div id="statRemaining" class="stat-big" style="color: var(--teal);">--</div>
+          </div>
+          <div class="panel-2 p-3 text-center">
+            <div class="text-xs" style="color: var(--ink-dim);">ETA</div>
+            <div id="statEta" class="stat-big" style="color: var(--teal);">--</div>
+          </div>
+          <div class="panel-2 p-3 text-center">
+            <div class="text-xs" style="color: var(--ink-dim);">SPEED</div>
+            <div id="statSpeed" class="stat-big" style="color: var(--teal);">--</div>
           </div>
         </div>
 
-        <div id="spatialMapContainer" class="relative">
-          <div id="mapSpatial"></div>
+        <div class="panel p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-sm"><i class="fa-solid fa-location-crosshairs mr-2" style="color: var(--amber);"></i>Live position</h3>
+            <span id="gpsAccuracy" class="text-xs font-mono" style="color: var(--ink-dim);"></span>
+          </div>
+          <p id="gpsStatus" class="text-xs" style="color: var(--ink-dim);">GPS uses your device hardware and keeps working when mobile data drops.</p>
+          <div class="grid grid-cols-2 gap-2">
+            <button id="gpsToggleBtn" class="btn-primary touch-target text-sm"><i class="fa-solid fa-satellite-dish mr-1"></i> Start GPS</button>
+            <button id="followBtn" class="btn-ghost touch-target text-sm"><i class="fa-solid fa-crosshairs mr-1"></i> Follow me</button>
+          </div>
+          <div id="offlineNavNote" class="demo-banner p-3 text-xs hidden">
+            <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+            Offline: following the saved route. Rerouting and new searches need a connection.
+          </div>
         </div>
 
-        <div id="spatialJsonContainer" class="hidden flex-1 bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs overflow-auto max-h-[480px]">
-          <span class="text-slate-500">// Segmented spatial nodes and corridor data will render here...</span>
+        <div class="panel p-4">
+          <h3 class="font-bold text-sm mb-2"><i class="fa-solid fa-list-ol mr-2" style="color: var(--teal);"></i>Maneuvers (distances are segment lengths)</h3>
+          <div id="driveStepsList" class="space-y-1 max-h-56 overflow-y-auto scroll-slim text-sm">
+            <p class="text-xs" style="color: var(--ink-dim);">No active route.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel overflow-hidden" style="min-height: 420px;">
+        <div id="driveMapSlot" class="w-full" style="height: 100%; min-height: 420px;"></div>
+      </div>
+    </section>
+
+    <!-- TRIPS (offline) -->
+    <section id="tab-trips" class="tab-page">
+      <div class="grid lg:grid-cols-2 gap-4">
+        <div class="panel p-4">
+          <h3 class="font-bold text-sm mb-1"><i class="fa-solid fa-box-archive mr-2" style="color: var(--amber);"></i>Saved offline trips</h3>
+          <p class="text-xs mb-3" style="color: var(--ink-dim);">Saved trips keep the full route, turn steps and stops on this device. Saved-route guidance can use device GPS without internet, if your phone supplies a recent accurate fix. Recently viewed map tiles may be cached; not a full offline map.</p>
+          <div id="tripsList" class="space-y-2"></div>
+        </div>
+        <div class="panel p-4 space-y-3">
+          <h3 class="font-bold text-sm"><i class="fa-solid fa-tower-cell mr-2" style="color: var(--teal);"></i>Connection &amp; storage</h3>
+          <div class="panel-2 p-3 flex items-center justify-between gap-3">
+            <span class="text-sm shrink-0">Connection</span>
+            <span id="connDetail" class="text-sm font-bold text-right" style="color: var(--green);">Online</span>
+          </div>
+          <div class="panel-2 p-3 flex items-center justify-between">
+            <span class="text-sm">App works offline</span>
+            <span id="swStatus" class="text-sm font-bold" style="color: var(--ink-dim);">Checking…</span>
+          </div>
+          <div class="panel-2 p-3 flex items-center justify-between">
+            <span class="text-sm">Saved trips</span>
+            <span id="tripCount" class="text-sm font-bold" style="color: var(--teal);">0</span>
+          </div>
+          <div class="demo-banner p-3 text-xs">
+            <i class="fa-solid fa-circle-info mr-1"></i>
+            Offline navigation follows the saved route with GPS. Searching new places, fetching new routes and viewing unvisited map areas need a connection.
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- TAB 3: PAYMERCH FINTECH ESCROW -->
-    <section id="fintechTab" class="hidden grid-cols-1 lg:grid-cols-12 gap-8">
-      <div class="lg:col-span-6 bg-slate-800/50 border border-slate-700/60 p-6 rounded-2xl shadow-xl space-y-4">
-        <h2 class="text-lg font-bold text-white flex items-center gap-2">
-          <i class="fa-solid fa-qrcode text-emerald-400"></i> Initialize Wholesale Escrow
-        </h2>
-        <p class="text-xs text-slate-400">Lock wholesale funds securely into PayMerch escrow before dispatching delivery units to informal spaza shops.</p>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Merchant / Spaza ID</label>
-          <input type="text" id="payMerchantId" value="spaza_site_c_01" class="w-full bg-slate-900 border border-slate-700 text-xs px-3 py-2 rounded-lg text-slate-200 focus:outline-none" />
+    <!-- VISION -->
+    <section id="tab-vision" class="tab-page">
+      <div class="panel p-5 max-w-2xl space-y-4">
+        <h3 class="font-bold"><i class="fa-solid fa-layer-group mr-2" style="color: var(--teal);"></i>Alleyway vision (concept)</h3>
+        <div class="demo-banner p-3 text-sm">
+          <i class="fa-solid fa-flask mr-1"></i>
+          Concept preview only. The segmentation model backend is not deployed, so this cannot analyse imagery yet. Nothing shown here should be treated as measured road data.
         </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Total Order Amount (ZAR)</label>
-          <input type="number" id="payAmountZar" value="1450.00" class="w-full bg-slate-900 border border-slate-700 text-xs px-3 py-2 rounded-lg text-slate-200 focus:outline-none" />
-        </div>
-
-        <button onclick="createPayMerchEscrow()" class="w-full bg-emerald-600 hover:bg-emerald-500 font-semibold text-white py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-600/20 flex justify-center items-center gap-2 text-sm">
-          <i class="fa-solid fa-lock"></i> Lock Funds in Escrow & Generate QR
-        </button>
-      </div>
-
-      <div class="lg:col-span-6 bg-slate-800/50 border border-slate-700/60 p-6 rounded-2xl shadow-xl flex flex-col space-y-4">
-        <h2 class="text-lg font-bold text-white flex items-center gap-2">
-          <i class="fa-solid fa-link text-indigo-400"></i> Netlify App Bridge & Status
-        </h2>
-        <p class="text-xs text-slate-400">Direct link to your live Netlify mobile money payment gateway UI:</p>
-        
-        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
-          <a href="https://paymerchmobmoney.netlify.app" target="_blank" class="block w-full text-center bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-lg text-xs transition-all">
-            <i class="fa-solid fa-external-link-alt"></i> Open PayMerch Mobile Money App (Netlify)
-          </a>
-          <div id="escrowResultBox" class="font-mono text-xs text-slate-400 p-3 bg-slate-900 rounded-lg min-h-[160px] overflow-auto">
-            // Escrow transaction payloads and QR references will display here...
-          </div>
-        </div>
+        <p class="text-sm" style="color: var(--ink-dim);">
+          The goal: photograph an unmapped alleyway and get passable corridors and widths to feed delivery routing.
+          Today the routing engine (Plan &amp; Drive) is the working part of Kasi-Logistics.
+        </p>
       </div>
     </section>
-  </main>
 
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- ESCROW -->
+    <section id="tab-escrow" class="tab-page">
+      <div class="panel p-5 max-w-2xl space-y-4">
+        <h3 class="font-bold"><i class="fa-solid fa-hand-holding-dollar mr-2" style="color: var(--amber);"></i>PayMerch escrow (demo)</h3>
+        <div class="demo-banner p-3 text-sm">
+          <i class="fa-solid fa-flask mr-1"></i>
+          Demo only - no live payment service is connected and no real money can move here.
+        </div>
+        <p class="text-sm" style="color: var(--ink-dim);">
+          The planned flow locks a wholesaler payment on order and releases it when delivery is confirmed.
+          Payment features stay separate from the delivery tools.
+        </p>
+      </div>
+    </section>
+
+    <!-- Mobile bottom nav -->
+    <nav id="mobileNav" class="lg:hidden fixed bottom-0 left-0 right-0 z-[1000] px-3 pb-3 pt-2"
+         style="background: rgba(10,15,30,0.92); backdrop-filter: blur(12px); border-top: 1px solid var(--edge);">
+      <div class="flex justify-around max-w-xl mx-auto" id="mobileNavBtns"></div>
+    </nav>
+  </div>
+
+  <script src="/vendor/leaflet/leaflet.js"></script>
   <script>
+    'use strict';
+
+    // ---------- Config ----------
     const APP_CONFIG = {
       API_BASE_URL:
         (window.__APP_CONFIG__ && window.__APP_CONFIG__.API_BASE_URL) ||
@@ -246,440 +335,733 @@
           ? 'http://localhost:8092'
           : 'https://your-fastapi-backend.example.com')
     };
+    const OSRM_BASE = 'https://router.project-osrm.org/route/v1/driving/';
+    const TRIPS_KEY = 'kasi.offlineTrips.v1';
 
-    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 19
-    });
-
-    const esriSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS',
-      maxZoom: 19
-    });
-
-    const spatialOsmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 19
-    });
-
-    const spatialEsriSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS',
-      maxZoom: 19
-    });
-
-    let routeMap = L.map('mapRoute', {
-      center: [-34.0280, 18.6750],
-      zoom: 13,
-      layers: [osmLayer]
-    });
-
-    let spatialMap = L.map('mapSpatial', {
-      center: [-34.0280, 18.6750],
-      zoom: 13,
-      layers: [spatialOsmLayer]
-    });
-
-    const routeBaseMaps = {
-      "Street Map (Roads & Names)": osmLayer,
-      "Satellite Imagery": esriSatellite
-    };
-    const spatialBaseMaps = {
-      "Street Map (Roads & Names)": spatialOsmLayer,
-      "Satellite Imagery": spatialEsriSatellite
-    };
-
-    L.control.layers(routeBaseMaps).addTo(routeMap);
-    L.control.layers(spatialBaseMaps).addTo(spatialMap);
-
-    let routeLayerGroup = L.layerGroup().addTo(routeMap);
-    let spatialLayerGroup = L.layerGroup().addTo(spatialMap);
-
-    let clickMode = 'spaza';
-    let supplierCoords = [-33.9012, 18.6291];
-    let spazaStops = [];
-
-const townshipPresets = {
+    // ---------- Township presets (real Cape Town nodes) ----------
+    const townshipPresets = {
       khayelitsha: {
+        label: 'Khayelitsha (Site C, Harare, Kuyasa)',
         center: [-34.0280, 18.6750],
-        supplier: { name: "Bellville MegaWholesale & Distribution Hub", coords: [-33.9012, 18.6291] },
+        supplier: { name: 'Bellville MegaWholesale & Distribution Hub', coords: [-33.9012, 18.6291] },
         spazas: [
-          { stop_id: "kh_site_c_01", merchant_name: "Mama Africa Spaza (Site C Terminus)", order_volume_kg: 180.0, coordinates: [-34.0321, 18.6654] },
-          { stop_id: "kh_harare_02", merchant_name: "Harare Fresh Produce & Tuckshop", order_volume_kg: 240.0, coordinates: [-34.0210, 18.6812] },
-          { stop_id: "kh_kuyasa_03", merchant_name: "Kuyasa Station General Dealer", order_volume_kg: 195.0, coordinates: [-34.0412, 18.6890] },
-          { stop_id: "kh_site_b_04", merchant_name: "Lithalemihle Wholesaling Spaza (Site B)", order_volume_kg: 150.0, coordinates: [-34.0285, 18.6580] },
-          { stop_id: "kh_lookout_05", merchant_name: "Lookout Hill Commercial Node", order_volume_kg: 310.0, coordinates: [-34.0150, 18.6905] },
-          { stop_id: "kh_bongweni_06", merchant_name: "Bongweni Community Store", order_volume_kg: 165.0, coordinates: [-34.0350, 18.6750] }
+          { stop_id: 'kh_site_c_01', merchant_name: 'Mama Africa Spaza (Site C Terminus)', order_volume_kg: 180.0, coordinates: [-34.0321, 18.6654] },
+          { stop_id: 'kh_harare_02', merchant_name: 'Harare Fresh Produce & Tuckshop', order_volume_kg: 240.0, coordinates: [-34.0210, 18.6812] },
+          { stop_id: 'kh_kuyasa_03', merchant_name: 'Kuyasa Station General Dealer', order_volume_kg: 195.0, coordinates: [-34.0412, 18.6890] },
+          { stop_id: 'kh_site_b_04', merchant_name: 'Lithalemihle Wholesaling Spaza (Site B)', order_volume_kg: 150.0, coordinates: [-34.0285, 18.6580] },
+          { stop_id: 'kh_lookout_05', merchant_name: 'Lookout Hill Commercial Node', order_volume_kg: 310.0, coordinates: [-34.0150, 18.6905] },
+          { stop_id: 'kh_bongweni_06', merchant_name: 'Bongweni Community Store', order_volume_kg: 165.0, coordinates: [-34.0350, 18.6750] }
         ]
       },
       gugulethu: {
+        label: 'Gugulethu (NY1, Square, NY78)',
         center: [-33.9750, 18.5700],
-        supplier: { name: "Philippi Industrial Wholesale Park", coords: [-33.9700, 18.5500] },
+        supplier: { name: 'Philippi Industrial Wholesale Park', coords: [-33.9700, 18.5500] },
         spazas: [
-          { stop_id: "gug_ny1_01", merchant_name: "NY1 Unit 1 Spaza Shop", order_volume_kg: 140.0, coordinates: [-33.9780, 18.5680] },
-          { stop_id: "gug_square_02", merchant_name: "NY108 Gugulethu Square Tuck", order_volume_kg: 220.0, coordinates: [-33.9820, 18.5740] },
-          { stop_id: "gug_maumau_03", merchant_name: "Mau Mau General Dealer (NY78)", order_volume_kg: 190.0, coordinates: [-33.9730, 18.5620] },
-          { stop_id: "gug_ny6_04", merchant_name: "NY6 Section Community Market", order_volume_kg: 175.0, coordinates: [-33.9705, 18.5590] }
+          { stop_id: 'gug_ny1_01', merchant_name: 'NY1 Unit 1 Spaza Shop', order_volume_kg: 140.0, coordinates: [-33.9780, 18.5680] },
+          { stop_id: 'gug_square_02', merchant_name: 'NY108 Gugulethu Square Tuck', order_volume_kg: 220.0, coordinates: [-33.9820, 18.5740] },
+          { stop_id: 'gug_maumau_03', merchant_name: 'Mau Mau General Dealer (NY78)', order_volume_kg: 190.0, coordinates: [-33.9730, 18.5620] },
+          { stop_id: 'gug_ny6_04', merchant_name: 'NY6 Section Community Market', order_volume_kg: 175.0, coordinates: [-33.9705, 18.5590] }
         ]
       },
       mitchellsplain: {
+        label: 'Mitchells Plain (Town Centre, Mandalay)',
         center: [-34.0450, 18.6100],
-        supplier: { name: "Epping Industria Bulk Goods Market", coords: [-33.9250, 18.5200] },
+        supplier: { name: 'Epping Industria Bulk Goods Market', coords: [-33.9250, 18.5200] },
         spazas: [
-          { stop_id: "mp_centre_01", merchant_name: "Town Centre Wholesaling Spaza", order_volume_kg: 280.0, coordinates: [-34.0420, 18.6080] },
-          { stop_id: "mp_mandalay_02", merchant_name: "Mandalay Station Store", order_volume_kg: 195.0, coordinates: [-34.0510, 18.6210] },
-          { stop_id: "mp_beacon_03", merchant_name: "Beacon Valley Retail Spaza", order_volume_kg: 210.0, coordinates: [-34.0580, 18.6150] }
+          { stop_id: 'mp_centre_01', merchant_name: 'Town Centre Wholesaling Spaza', order_volume_kg: 280.0, coordinates: [-34.0420, 18.6080] },
+          { stop_id: 'mp_mandalay_02', merchant_name: 'Mandalay Station Store', order_volume_kg: 195.0, coordinates: [-34.0510, 18.6210] },
+          { stop_id: 'mp_beacon_03', merchant_name: 'Beacon Valley Retail Spaza', order_volume_kg: 210.0, coordinates: [-34.0580, 18.6150] }
         ]
       },
       langa: {
+        label: 'Langa (Zone 23, Washington St)',
         center: [-33.9350, 18.5300],
-        supplier: { name: "Epping Industrial Distribution Hub", coords: [-33.9250, 18.5200] },
+        supplier: { name: 'Epping Industrial Distribution Hub', coords: [-33.9250, 18.5200] },
         spazas: [
-          { stop_id: "langa_z23_01", merchant_name: "Zone 23 Langa Spaza", order_volume_kg: 130.0, coordinates: [-33.9330, 18.5280] },
-          { stop_id: "langa_wash_02", merchant_name: "Washington Street Tuckshop", order_volume_kg: 165.0, coordinates: [-33.9390, 18.5350] },
-          { stop_id: "langa_bhunga_03", merchant_name: "Bhunga Avenue Trading Post", order_volume_kg: 185.0, coordinates: [-33.9450, 18.5220] }
+          { stop_id: 'langa_z23_01', merchant_name: 'Zone 23 Langa Spaza', order_volume_kg: 130.0, coordinates: [-33.9330, 18.5280] },
+          { stop_id: 'langa_wash_02', merchant_name: 'Washington Street Tuckshop', order_volume_kg: 165.0, coordinates: [-33.9390, 18.5350] },
+          { stop_id: 'langa_bhunga_03', merchant_name: 'Bhunga Avenue Trading Post', order_volume_kg: 185.0, coordinates: [-33.9450, 18.5220] }
         ]
       }
     };
 
-    function loadTownshipPreset(key) {
-      if (!townshipPresets[key]) return;
-      const preset = townshipPresets[key];
-      routeMap.setView(preset.center, 13);
-      supplierCoords = preset.supplier.coords;
-      document.getElementById('supplierName').value = preset.supplier.name;
-      document.getElementById('supplierCoordsDisplay').innerText = `${supplierCoords[0]}, ${supplierCoords[1]}`;
-      spazaStops = preset.spazas;
-      updateUIAndMap();
-    }
+    // ---------- State ----------
+    let supplierCoords = [-33.9012, 18.6291];
+    let spazaStops = [];
+    let clickMode = 'spaza';
+    let activeRoute = null;        // { geometry: [[lat,lon]...], steps: [...], distance_m, duration_s, alternatives: [...] }
+    let nav = null;                // navigation session state
+    let gpsWatchId = null;
+    let lastPosition = null;       // { lat, lon, accuracy, speed }
+    let followMe = false;
 
-    function setClickMode(mode) {
-      clickMode = mode;
-      if (mode === 'spaza') {
-        document.getElementById('modeSpazaBtn').className = "py-2 px-3 rounded-lg text-xs font-medium bg-indigo-600 text-white border border-indigo-500 transition-all";
-        document.getElementById('modeSupplierBtn').className = "py-2 px-3 rounded-lg text-xs font-medium bg-slate-900 text-slate-300 border border-slate-700 hover:bg-slate-800 transition-all";
-      } else {
-        document.getElementById('modeSupplierBtn').className = "py-2 px-3 rounded-lg text-xs font-medium bg-amber-600 text-white border border-amber-500 transition-all";
-        document.getElementById('modeSpazaBtn').className = "py-2 px-3 rounded-lg text-xs font-medium bg-slate-900 text-slate-300 border border-slate-700 hover:bg-slate-800 transition-all";
-      }
-    }
-
-    routeMap.on('click', function(e) {
-      const lat = parseFloat(e.latlng.lat.toFixed(4));
-      const lon = parseFloat(e.latlng.lng.toFixed(4));
-
-      if (clickMode === 'supplier') {
-        supplierCoords = [lat, lon];
-        document.getElementById('supplierCoordsDisplay').innerText = `${lat}, ${lon}`;
-        updateUIAndMap();
-      } else {
-        spazaStops.push({
-          stop_id: `spaza_${spazaStops.length + 1}`,
-          merchant_name: `Custom Spaza Node #${spazaStops.length + 1}`,
-          order_volume_kg: Math.floor(Math.random() * 80) + 100,
-          coordinates: [lat, lon]
-        });
-        updateUIAndMap();
-      }
+    // ---------- Map ----------
+    const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19
+    });
+    const esriSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community',
+      maxZoom: 19
     });
 
-    function clearAllSpazas() {
-      spazaStops = [];
-      updateUIAndMap();
+    const map = L.map('map', { center: [-34.0280, 18.6750], zoom: 13, layers: [osmLayer] });
+    L.control.layers({ 'Street map': osmLayer, 'Satellite': esriSatellite }).addTo(map);
+
+    const markersLayer = L.layerGroup().addTo(map);
+    const routeLayer = L.layerGroup().addTo(map);
+    const gpsLayer = L.layerGroup().addTo(map);
+
+    // Move the single map element between Plan and Drive tabs so tiles and state carry over.
+    function mountMap(slotId) {
+      const slot = document.getElementById(slotId);
+      const mapEl = document.getElementById('map');
+      if (slot && mapEl && mapEl.parentElement !== slot) slot.appendChild(mapEl);
+      setTimeout(() => map.invalidateSize(), 60);
     }
 
-    function updateUIAndMap() {
-      document.getElementById('stopsJson').value = JSON.stringify(spazaStops, null, 2);
+    // ---------- Helpers ----------
+    function haversineM(a, b) {
+      const R = 6371000;
+      const dLat = (b[0] - a[0]) * Math.PI / 180;
+      const dLon = (b[1] - a[1]) * Math.PI / 180;
+      const s = Math.sin(dLat / 2) ** 2 + Math.cos(a[0] * Math.PI / 180) * Math.cos(b[0] * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+      return 2 * R * Math.asin(Math.sqrt(s));
+    }
+    function fmtDist(m) {
+      if (m == null || isNaN(m)) return '--';
+      return m >= 1000 ? (m / 1000).toFixed(1) + ' km' : Math.round(m) + ' m';
+    }
+    function fmtDuration(s) {
+      if (s == null || isNaN(s)) return '--';
+      const mins = Math.round(s / 60);
+      if (mins < 60) return mins + ' min';
+      return Math.floor(mins / 60) + ' h ' + (mins % 60) + ' min';
+    }
+    function fmtClock(ts) {
+      return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    const MANEUVER_ICONS = {
+      'turn-left': 'fa-arrow-turn-up fa-rotate-270',
+      'turn-right': 'fa-arrow-turn-up fa-rotate-90',
+      'turn-sharp left': 'fa-arrow-turn-up fa-rotate-270',
+      'turn-sharp right': 'fa-arrow-turn-up fa-rotate-90',
+      'turn-slight left': 'fa-arrow-trend-up fa-rotate-270',
+      'turn-slight right': 'fa-arrow-trend-up',
+      'uturn': 'fa-arrow-rotate-left',
+      'roundabout': 'fa-rotate',
+      'roundabout-left': 'fa-rotate',
+      'roundabout-right': 'fa-rotate',
+      'rotary': 'fa-rotate',
+      'arrive': 'fa-flag-checkered',
+      'depart': 'fa-play',
+      'merge': 'fa-code-merge',
+      'fork': 'fa-code-fork',
+      'continue': 'fa-arrow-up',
+      'straight': 'fa-arrow-up'
+    };
+    function maneuverIcon(step) {
+      const t = (step.maneuver && step.maneuver.type) || 'continue';
+      const mod = (step.maneuver && step.maneuver.modifier) || '';
+      let key = t + '-' + mod;
+      if (MANEUVER_ICONS[key]) return MANEUVER_ICONS[key];
+      if (MANEUVER_ICONS[t]) return MANEUVER_ICONS[t];
+      if (t === 'turn' || t === 'off ramp' || t === 'on ramp') {
+        if (mod.includes('left')) return MANEUVER_ICONS['turn-left'];
+        if (mod.includes('right')) return MANEUVER_ICONS['turn-right'];
+      }
+      if (t.includes('arrive')) return MANEUVER_ICONS['arrive'];
+      return MANEUVER_ICONS['straight'];
+    }
+    // OSRM gives maneuver type + modifier + road name, not prose. Build honest instructions.
+    function buildInstruction(type, modifier, road, exit, arriveTarget) {
+      const onto = road ? ' onto ' + road : '';
+      switch (type) {
+        case 'depart': return 'Head out' + (road ? ' on ' + road : '');
+        case 'arrive': return 'Arrive: ' + (arriveTarget || 'destination');
+        case 'turn': return 'Turn ' + (modifier || '') + onto;
+        case 'new name': return 'Continue' + onto;
+        case 'continue': return modifier ? 'Keep ' + modifier + onto : 'Continue' + onto;
+        case 'merge': return 'Merge ' + (modifier || '') + onto;
+        case 'fork': return 'Keep ' + (modifier || '') + ' at the fork' + onto;
+        case 'on ramp': return 'Take the ramp' + onto;
+        case 'off ramp': return 'Take the exit' + onto;
+        case 'roundabout': case 'rotary':
+          return 'At the roundabout, take exit ' + (exit || '') + onto;
+        case 'roundabout turn': return 'At the roundabout, turn ' + (modifier || '') + onto;
+        case 'exit roundabout': case 'exit rotary': return 'Leave the roundabout' + onto;
+        case 'end of road': return 'At the end of the road, turn ' + (modifier || '') + onto;
+        case 'notification': return 'Heads up' + onto;
+        default: return ('Proceed ' + (modifier || '')).trim() + onto;
+      }
+    }
+    function stepInstruction(step) {
+      return step.instruction || 'Continue';
+    }
+
+    // Flatten OSRM legs -> uniform step list. Leg boundaries name the stop being reached.
+    function flattenSteps(route) {
+      const steps = [];
+      route.legs.forEach((leg, legIdx) => {
+        (leg.steps || []).forEach(s => {
+          const m = s.maneuver || {};
+          let arriveTarget = null;
+          if (m.type === 'arrive') {
+            arriveTarget = legIdx < spazaStops.length
+              ? (spazaStops[legIdx].merchant_name || ('stop ' + (legIdx + 1)))
+              : 'wholesaler hub';
+          }
+          steps.push({
+            instruction: buildInstruction(m.type || '', m.modifier || '', s.name || '', m.exit, arriveTarget),
+            name: s.name || '',
+            distance: s.distance || 0,
+            duration: s.duration || 0,
+            maneuver: m,
+            geometry: (s.geometry && s.geometry.coordinates ? s.geometry.coordinates.map(c => [c[1], c[0]]) : [])
+          });
+        });
+      });
+      return steps;
+    }
+
+    // ---------- Tabs ----------
+    const TABS = [
+      { id: 'plan', label: 'Plan', icon: 'fa-map-location-dot' },
+      { id: 'drive', label: 'Drive', icon: 'fa-truck-fast' },
+      { id: 'trips', label: 'Offline', icon: 'fa-box-archive' },
+      { id: 'vision', label: 'Vision', icon: 'fa-layer-group' },
+      { id: 'escrow', label: 'Escrow', icon: 'fa-hand-holding-dollar' }
+    ];
+    function renderNav() {
+      const desk = document.getElementById('deskNav');
+      const mob = document.getElementById('mobileNavBtns');
+      desk.innerHTML = ''; mob.innerHTML = '';
+      TABS.forEach(t => {
+        const b1 = document.createElement('button');
+        b1.className = 'nav-btn touch-target' + (currentTab === t.id ? ' active' : '');
+        b1.style.flexDirection = 'row'; b1.style.gap = '8px'; b1.style.fontSize = '0.85rem';
+        b1.innerHTML = `<i class="fa-solid ${t.icon}"></i> ${t.label}`;
+        b1.onclick = () => switchTab(t.id);
+        desk.appendChild(b1);
+        const b2 = document.createElement('button');
+        b2.className = 'nav-btn touch-target' + (currentTab === t.id ? ' active' : '');
+        b2.innerHTML = `<i class="fa-solid ${t.icon} text-base"></i><span>${t.label}</span>`;
+        b2.onclick = () => switchTab(t.id);
+        mob.appendChild(b2);
+      });
+    }
+    let currentTab = 'plan';
+    function switchTab(id) {
+      currentTab = id;
+      window.scrollTo(0, 0);
+      document.querySelectorAll('.tab-page').forEach(p => p.classList.toggle('active', p.id === 'tab-' + id));
+      if (id === 'plan') mountMap('planMapSlot');
+      if (id === 'drive') mountMap('driveMapSlot');
+      renderNav();
+    }
+
+    // ---------- Plan tab ----------
+    function renderPresetSelect() {
+      const sel = document.getElementById('presetSelect');
+      sel.innerHTML = '';
+      Object.entries(townshipPresets).forEach(([key, p]) => {
+        const opt = document.createElement('option');
+        opt.value = key; opt.textContent = p.label;
+        sel.appendChild(opt);
+      });
+      sel.onchange = () => loadTownshipPreset(sel.value);
+    }
+
+    function loadTownshipPreset(key) {
+      const preset = townshipPresets[key];
+      if (!preset) return;
+      map.setView(preset.center, 13);
+      supplierCoords = preset.supplier.coords.slice();
+      document.getElementById('supplierName').value = preset.supplier.name;
+      document.getElementById('supplierCoordsDisplay').innerText = supplierCoords[0] + ', ' + supplierCoords[1];
+      spazaStops = preset.spazas.map(s => ({ ...s }));
+      refreshStopsUI();
+    }
+
+    function refreshStopsUI() {
       document.getElementById('spazaCount').innerText = spazaStops.length;
-      renderMarkersOnMap();
+      document.getElementById('stopsJson').value = JSON.stringify(spazaStops, null, 2);
+      const list = document.getElementById('stopsList');
+      list.innerHTML = '';
+      spazaStops.forEach((s, i) => {
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between gap-2 panel-2 px-2 py-1';
+        row.innerHTML = `<span class="truncate"><b style="color: var(--teal);">${i + 1}.</b> ${s.merchant_name}</span>
+          <span class="text-xs shrink-0" style="color: var(--ink-dim);">${s.order_volume_kg} kg</span>`;
+        list.appendChild(row);
+      });
+      renderMarkers();
     }
 
-    function renderMarkersOnMap() {
-      routeLayerGroup.clearLayers();
-
+    function renderMarkers() {
+      markersLayer.clearLayers();
       const supplierIcon = L.icon({
         iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-gold.png',
         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
         iconSize: [25, 41], iconAnchor: [12, 41]
       });
-      L.marker(supplierCoords, { icon: supplierIcon })
-       .addTo(routeLayerGroup)
-       .bindPopup(`<b>🏢 Wholesaler Hub:</b> ${document.getElementById('supplierName').value}<br>GPS: ${supplierCoords}`);
-
+      L.marker(supplierCoords, { icon: supplierIcon }).addTo(markersLayer)
+        .bindPopup('<b>Wholesaler:</b> ' + document.getElementById('supplierName').value);
+      const spazaIcon = L.icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+        iconSize: [25, 41], iconAnchor: [12, 41]
+      });
       spazaStops.forEach((stop, idx) => {
-        const spazaIcon = L.icon({
-          iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
-          shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-          iconSize: [25, 41], iconAnchor: [12, 41]
-        });
-        L.marker(stop.coordinates, { icon: spazaIcon })
-         .addTo(routeLayerGroup)
-         .bindPopup(`<b>🏪 Spaza #${idx+1}:</b> ${stop.merchant_name}<br><b>Volume:</b> ${stop.order_volume_kg} KG`);
+        L.marker(stop.coordinates, { icon: spazaIcon }).addTo(markersLayer)
+          .bindPopup('<b>Spaza #' + (idx + 1) + ':</b> ' + stop.merchant_name + '<br><b>Load:</b> ' + stop.order_volume_kg + ' kg');
       });
     }
 
-    loadTownshipPreset('khayelitsha');
-
-    function switchTab(tab) {
-      const routeTab = document.getElementById('routeTab');
-      const spatialTab = document.getElementById('spatialTab');
-      const fintechTab = document.getElementById('fintechTab');
-      const tabRouteBtn = document.getElementById('tabRouteBtn');
-      const tabSpatialBtn = document.getElementById('tabSpatialBtn');
-      const tabFintechBtn = document.getElementById('tabFintechBtn');
-
-      routeTab.classList.add('hidden'); routeTab.classList.remove('grid');
-      spatialTab.classList.add('hidden'); spatialTab.classList.remove('grid');
-      fintechTab.classList.add('hidden'); fintechTab.classList.remove('grid');
-
-      tabRouteBtn.className = "pb-3 px-2 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2 whitespace-nowrap";
-      tabSpatialBtn.className = "pb-3 px-2 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2 whitespace-nowrap";
-      tabFintechBtn.className = "pb-3 px-2 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2 whitespace-nowrap";
-
-      if (tab === 'route') {
-        routeTab.classList.remove('hidden'); routeTab.classList.add('grid');
-        tabRouteBtn.className = "pb-3 px-2 font-semibold text-sm border-b-2 border-indigo-500 text-indigo-400 transition-all flex items-center gap-2 whitespace-nowrap";
-        routeMap.invalidateSize();
-      } else if (tab === 'spatial') {
-        spatialTab.classList.remove('hidden'); spatialTab.classList.add('grid');
-        tabSpatialBtn.className = "pb-3 px-2 font-semibold text-sm border-b-2 border-emerald-500 text-emerald-400 transition-all flex items-center gap-2 whitespace-nowrap";
-        spatialMap.invalidateSize();
-      } else if (tab === 'fintech') {
-        fintechTab.classList.remove('hidden'); fintechTab.classList.add('grid');
-        tabFintechBtn.className = "pb-3 px-2 font-semibold text-sm border-b-2 border-emerald-500 text-emerald-400 transition-all flex items-center gap-2 whitespace-nowrap";
-      }
-    }
-
-    function switchRouteView(view) {
-      const mapContainer = document.getElementById('routeMapContainer');
-      const jsonContainer = document.getElementById('routeJsonContainer');
-      const btnMap = document.getElementById('btnViewMap');
-      const btnJson = document.getElementById('btnViewJson');
-
-      if (view === 'map') {
-        mapContainer.classList.remove('hidden');
-        jsonContainer.classList.add('hidden');
-        btnMap.className = "px-3 py-1 rounded-md bg-indigo-600 text-white font-medium transition-all";
-        btnJson.className = "px-3 py-1 rounded-md text-slate-400 hover:text-white transition-all";
-        routeMap.invalidateSize();
+    map.on('click', function (e) {
+      if (currentTab !== 'plan') return;
+      const lat = parseFloat(e.latlng.lat.toFixed(4));
+      const lon = parseFloat(e.latlng.lng.toFixed(4));
+      if (clickMode === 'supplier') {
+        supplierCoords = [lat, lon];
+        document.getElementById('supplierCoordsDisplay').innerText = lat + ', ' + lon;
       } else {
-        mapContainer.classList.add('hidden');
-        jsonContainer.classList.remove('hidden');
-        btnJson.className = "px-3 py-1 rounded-md bg-indigo-600 text-white font-medium transition-all";
-        btnMap.className = "px-3 py-1 rounded-md text-slate-400 hover:text-white transition-all";
+        spazaStops.push({
+          stop_id: 'spaza_' + (spazaStops.length + 1),
+          merchant_name: 'Custom Spaza Node #' + (spazaStops.length + 1),
+          order_volume_kg: 100,
+          coordinates: [lat, lon]
+        });
       }
-    }
+      refreshStopsUI();
+    });
 
-    function switchSpatialView(view) {
-      const mapContainer = document.getElementById('spatialMapContainer');
-      const jsonContainer = document.getElementById('spatialJsonContainer');
-      const btnMap = document.getElementById('btnSpatialMap');
-      const btnJson = document.getElementById('btnSpatialJson');
-
-      if (view === 'map') {
-        mapContainer.classList.remove('hidden');
-        jsonContainer.classList.add('hidden');
-        btnMap.className = "px-3 py-1 rounded-md bg-emerald-600 text-white font-medium transition-all";
-        btnJson.className = "px-3 py-1 rounded-md text-slate-400 hover:text-white transition-all";
-        spatialMap.invalidateSize();
-      } else {
-        mapContainer.classList.add('hidden');
-        jsonContainer.classList.remove('hidden');
-        btnJson.className = "px-3 py-1 rounded-md bg-emerald-600 text-white font-medium transition-all";
-        btnMap.className = "px-3 py-1 rounded-md text-slate-400 hover:text-white transition-all";
-      }
-    }
-
-    function previewImage(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          document.getElementById('imagePreview').src = e.target.result;
-          document.getElementById('imagePreviewContainer').classList.remove('hidden');
-        }
-        reader.readAsDataURL(file);
-      }
-    }
-
-    let activeRouteAlternatives = [];
-    let currentRoutePolylines = [];
-
-    async function calculateRealRoadRoutes() {
-      const token = document.getElementById('authToken').value;
-      const jsonOutput = document.getElementById('routeJsonContainer');
-      const routeSelectorBar = document.getElementById('routeSelectorBar');
-
+    async function fetchRoute() {
       try {
         spazaStops = JSON.parse(document.getElementById('stopsJson').value);
       } catch (e) {
-        alert("Invalid Spaza JSON.");
+        alert('The stops JSON is invalid. Fix it or reload a preset.');
         return;
       }
-
-      renderMarkersOnMap();
-
-      let coordsString = `${supplierCoords[1]},${supplierCoords[0]}`;
-      spazaStops.forEach(s => {
-        coordsString += `;${s.coordinates[1]},${s.coordinates[0]}`;
-      });
-      coordsString += `;${supplierCoords[1]},${supplierCoords[0]}`;
-
+      if (spazaStops.length === 0) {
+        alert('Add at least one spaza stop first.');
+        return;
+      }
+      refreshStopsUI();
+      const btn = document.getElementById('fetchRouteBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Finding route…';
       try {
-        const osrmRes = await fetch(`https://router.project-osrm.org/route/v1/driving/${coordsString}?overview=full&geometries=geojson`);
-        const osrmData = await osrmRes.json();
+        let coords = supplierCoords[1] + ',' + supplierCoords[0];
+        spazaStops.forEach(s => { coords += ';' + s.coordinates[1] + ',' + s.coordinates[0]; });
+        coords += ';' + supplierCoords[1] + ',' + supplierCoords[0];
+        const url = OSRM_BASE + coords + '?overview=full&geometries=geojson&steps=true&alternatives=true';
+        const res = await fetch(url);
+        const data = await res.json();
+        if (!data.routes || data.routes.length === 0) throw new Error('No road route found for these stops.');
 
-        if (!osrmData.routes || osrmData.routes.length === 0) {
-          throw new Error("No real road route found by OSRM engine.");
+        const r0 = data.routes[0];
+        activeRoute = {
+          source: 'OSRM (OpenStreetMap road network)',
+          fetchedAt: Date.now(),
+          geometry: r0.geometry.coordinates.map(c => [c[1], c[0]]),
+          distance_m: r0.distance,
+          duration_s: r0.duration,
+          steps: flattenSteps(r0),
+          stops: spazaStops.map(s => ({ ...s })),
+          supplier: { name: document.getElementById('supplierName').value, coords: supplierCoords.slice() },
+          alternatives: data.routes.slice(1).map((r, i) => ({
+            label: 'Alternative ' + (i + 2),
+            geometry: r.geometry.coordinates.map(c => [c[1], c[0]]),
+            distance_m: r.distance,
+            duration_s: r.duration,
+            steps: flattenSteps(r)
+          }))
+        };
+        computeRouteDerived();
+        renderRouteResults();
+        plotActiveRoute();
+        switchToResults();
+      } catch (err) {
+        document.getElementById('planHint').innerText = 'Route fetch failed: ' + err.message + ' (needs a connection)';
+        document.getElementById('planHint').style.color = 'var(--red)';
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-road mr-2"></i>Get road route &amp; turn-by-turn';
+      }
+    }
+
+    function switchToResults() {
+      document.getElementById('routeResults').classList.remove('hidden');
+      document.getElementById('routeResults').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function renderRouteResults() {
+      if (!activeRoute) return;
+      const bar = document.getElementById('alternativesBar');
+      bar.innerHTML = '';
+      const all = [{ label: 'Fastest route', distance_m: activeRoute.distance_m, duration_s: activeRoute.duration_s, idx: -1 }]
+        .concat(activeRoute.alternatives.map((a, i) => ({ label: a.label, distance_m: a.distance_m, duration_s: a.duration_s, idx: i })));
+      all.forEach((opt, i) => {
+        const b = document.createElement('button');
+        b.className = 'w-full panel-2 p-3 flex items-center justify-between touch-target alt-btn' + (i === 0 ? ' selected' : '');
+        b.style.borderColor = i === 0 ? 'var(--amber)' : 'var(--edge)';
+        b.innerHTML = `<span class="font-semibold text-sm"><i class="fa-solid fa-road mr-2" style="color: var(--amber);"></i>${opt.label}</span>
+          <span class="text-xs font-mono" style="color: var(--teal);">${fmtDist(opt.distance_m)} · ${fmtDuration(opt.duration_s)}</span>`;
+        b.onclick = () => selectAlternative(opt.idx);
+        bar.appendChild(b);
+      });
+      renderStepsList(document.getElementById('stepsList'), activeRoute.steps);
+    }
+
+    function renderStepsList(container, steps) {
+      container.innerHTML = '';
+      steps.forEach((s, i) => {
+        const row = document.createElement('div');
+        row.className = 'panel-2 p-2 flex items-center gap-3 step-row';
+        row.dataset.stepIdx = i;
+        row.innerHTML = `<i class="fa-solid ${maneuverIcon(s)} w-5 text-center" style="color: var(--amber);"></i>
+          <span class="flex-1 text-sm">${stepInstruction(s, i)}</span>
+          <span class="text-xs font-mono shrink-0" style="color: var(--ink-dim);">segment ${fmtDist(s.distance)}</span>`;
+        container.appendChild(row);
+      });
+    }
+
+    function selectAlternative(idx) {
+      if (!activeRoute) return;
+      if (idx >= 0) {
+        const alt = activeRoute.alternatives[idx];
+        const main = { geometry: activeRoute.geometry, distance_m: activeRoute.distance_m, duration_s: activeRoute.duration_s, steps: activeRoute.steps };
+        activeRoute.geometry = alt.geometry; activeRoute.distance_m = alt.distance_m;
+        activeRoute.duration_s = alt.duration_s; activeRoute.steps = alt.steps;
+        activeRoute.alternatives[idx] = { ...main, label: 'Alternative ' + (idx + 1) };
+      }
+      computeRouteDerived();
+      renderRouteResults();
+      plotActiveRoute();
+    }
+
+    function plotActiveRoute() {
+      routeLayer.clearLayers();
+      if (!activeRoute) return;
+      activeRoute.alternatives.forEach(a => {
+        L.polyline(a.geometry, { color: '#3b82f6', weight: 4, opacity: 0.35, dashArray: '6,6' }).addTo(routeLayer);
+      });
+      L.polyline(activeRoute.geometry, { color: '#fbbf24', weight: 6, opacity: 0.95 }).addTo(routeLayer);
+      const pts = [supplierCoords].concat(spazaStops.map(s => s.coordinates));
+      map.fitBounds(L.latLngBounds(pts.concat(activeRoute.geometry)), { padding: [50, 50] });
+    }
+
+    // ---------- Offline trips ----------
+    function getTrips() {
+      try { return JSON.parse(localStorage.getItem(TRIPS_KEY)) || []; } catch (e) { return []; }
+    }
+    function setTrips(trips) { localStorage.setItem(TRIPS_KEY, JSON.stringify(trips)); renderTrips(); }
+
+    function saveCurrentTrip() {
+      if (!activeRoute) { alert('Fetch a route first, then save it for offline.'); return; }
+      const trips = getTrips();
+      const name = (activeRoute.supplier.name || 'Trip') + ' → ' + spazaStops.length + ' stops';
+      trips.unshift({
+        id: 'trip_' + Date.now(),
+        name,
+        savedAt: Date.now(),
+        route: activeRoute
+      });
+      setTrips(trips.slice(0, 20));
+      alert('Trip saved to this device. You can navigate it with no signal.');
+    }
+
+    function renderTrips() {
+      const trips = getTrips();
+      document.getElementById('tripCount').innerText = trips.length;
+      const list = document.getElementById('tripsList');
+      list.innerHTML = '';
+      if (trips.length === 0) {
+        list.innerHTML = '<p class="text-sm" style="color: var(--ink-dim);">No saved trips yet. Plan a route, then tap "Save for offline".</p>';
+        return;
+      }
+      trips.forEach(t => {
+        const card = document.createElement('div');
+        card.className = 'panel-2 p-3 flex items-center justify-between gap-2';
+        card.innerHTML = `<div class="min-w-0">
+            <div class="font-semibold text-sm truncate">${t.name}</div>
+            <div class="text-xs" style="color: var(--ink-dim);">${fmtDist(t.route.distance_m)} · ${fmtDuration(t.route.duration_s)} · saved ${new Date(t.savedAt).toLocaleDateString()}</div>
+          </div>
+          <div class="flex gap-2 shrink-0">
+            <button class="btn-primary text-xs touch-target px-3 py-2" data-load="${t.id}"><i class="fa-solid fa-play mr-1"></i>Drive</button>
+            <button class="btn-ghost text-xs touch-target px-3 py-2" data-del="${t.id}"><i class="fa-solid fa-trash"></i></button>
+          </div>`;
+        list.appendChild(card);
+      });
+      list.querySelectorAll('[data-load]').forEach(b => b.onclick = () => loadTrip(b.dataset.load));
+      list.querySelectorAll('[data-del]').forEach(b => b.onclick = () => setTrips(getTrips().filter(t => t.id !== b.dataset.del)));
+    }
+
+    function loadTrip(id) {
+      const t = getTrips().find(x => x.id === id);
+      if (!t) return;
+      activeRoute = t.route;
+      computeRouteDerived();
+      supplierCoords = t.route.supplier.coords.slice();
+      spazaStops = t.route.stops.map(s => ({ ...s }));
+      document.getElementById('supplierName').value = t.route.supplier.name;
+      document.getElementById('supplierCoordsDisplay').innerText = supplierCoords[0] + ', ' + supplierCoords[1];
+      refreshStopsUI();
+      renderRouteResults();
+      plotActiveRoute();
+      startNavigation();
+    }
+
+    // ---------- GPS & navigation ----------
+    function startGps() {
+      if (!('geolocation' in navigator)) {
+        document.getElementById('gpsStatus').innerText = 'This device has no location service available to the browser.';
+        return;
+      }
+      if (gpsWatchId !== null) return;
+      gpsWatchId = navigator.geolocation.watchPosition(onPosition, onPositionError, {
+        enableHighAccuracy: true, maximumAge: 2000, timeout: 20000
+      });
+      document.getElementById('gpsToggleBtn').innerHTML = '<i class="fa-solid fa-stop mr-1"></i> Stop GPS';
+      document.getElementById('gpsPill').innerHTML = '<i class="fa-solid fa-location-crosshairs mr-1"></i>GPS starting…';
+    }
+    function stopGps() {
+      if (gpsWatchId !== null) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
+      document.getElementById('gpsToggleBtn').innerHTML = '<i class="fa-solid fa-satellite-dish mr-1"></i> Start GPS';
+      document.getElementById('gpsPill').innerHTML = '<i class="fa-solid fa-location-crosshairs mr-1"></i>GPS off';
+      document.getElementById('gpsAccuracy').innerText = '';
+      gpsLayer.clearLayers();
+      lastPosition = null;
+      if (nav) updateNavigation();
+    }
+    function onPositionError(err) {
+      lastPosition = null;
+      if (nav) updateNavigation();
+      const msgs = { 1: 'Location permission denied. Allow location in your browser settings to use live navigation.', 2: 'Position unavailable right now. Move to open sky and keep GPS on.', 3: 'Location timed out. Still trying…' };
+      document.getElementById('gpsStatus').innerText = msgs[err.code] || 'Location error.';
+      document.getElementById('gpsPill').innerHTML = '<i class="fa-solid fa-location-crosshairs mr-1"></i>GPS error';
+    }
+    function onPosition(pos) {
+      lastPosition = {
+        lat: pos.coords.latitude, lon: pos.coords.longitude,
+        accuracy: pos.coords.accuracy, speed: pos.coords.speed, heading: pos.coords.heading,
+        time: Date.now()
+      };
+      document.getElementById('gpsPill').innerHTML = '<i class="fa-solid fa-location-crosshairs mr-1"></i>GPS live';
+      document.getElementById('gpsAccuracy').innerText = '±' + Math.round(pos.coords.accuracy) + ' m';
+      document.getElementById('gpsStatus').innerText = 'Live. Accuracy ±' + Math.round(pos.coords.accuracy) + ' m' + (navigator.onLine ? '' : ' (offline - GPS still works)');
+      document.getElementById('statSpeed').innerText = pos.coords.speed != null && !isNaN(pos.coords.speed)
+        ? Math.round(pos.coords.speed * 3.6) + ' km/h' : '--';
+      drawGpsDot(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
+      if (followMe) map.setView([pos.coords.latitude, pos.coords.longitude], Math.max(map.getZoom(), 16), { animate: true });
+      if (nav) updateNavigation();
+    }
+    function drawGpsDot(lat, lon, accuracy) {
+      gpsLayer.clearLayers();
+      if (accuracy) {
+        L.circle([lat, lon], { radius: accuracy, color: '#3b82f6', weight: 1, opacity: 0.4, fillColor: '#3b82f6', fillOpacity: 0.12 }).addTo(gpsLayer);
+      }
+      L.marker([lat, lon], {
+        icon: L.divIcon({ className: '', html: '<div class="gps-dot"></div>', iconSize: [18, 18], iconAnchor: [9, 9] }),
+        interactive: false
+      }).addTo(gpsLayer);
+    }
+
+    let navStaleTimer = null;
+    const GPS_STALE_MS = 12000;
+    const OFF_ROUTE_M = 60;
+
+    function setNoteVisibility(id, show) {
+      document.getElementById(id).classList.toggle('hidden', !show);
+    }
+
+    function startNavigation() {
+      if (!activeRoute) { alert('Plan or load a route first.'); return; }
+      nav = { stepIdx: 0, progressV: 0, startedAt: Date.now(), arrived: false, offRouteCount: 0, offRoute: false };
+      lastPosition = null; // a new session must not consume the previous session's last fix
+      switchTab('drive');
+      renderStepsList(document.getElementById('driveStepsList'), activeRoute.steps);
+      startGps();
+      if (navStaleTimer) clearInterval(navStaleTimer);
+      navStaleTimer = setInterval(() => { if (nav) updateNavigation(); }, 5000);
+      updateNavigation();
+    }
+
+    function computeRouteDerived() {
+      if (!activeRoute) return;
+      const geo = activeRoute.geometry;
+      const cum = [0];
+      for (let i = 1; i < geo.length; i++) cum.push(cum[i - 1] + haversineM(geo[i - 1], geo[i]));
+      activeRoute.cumDist = cum;
+      // OSRM step geometries are slices of the full route: consecutive steps share
+      // the maneuver vertex, so each step starts where the previous one ended.
+      let v = 0;
+      activeRoute.steps.forEach(s => {
+        s.startV = v;
+        v += Math.max(0, (s.geometry ? s.geometry.length : 1) - 1);
+      });
+    }
+
+    function updateNavigation() {
+      if (!nav || !activeRoute) return;
+      const steps = activeRoute.steps;
+      const geo = activeRoute.geometry;
+      const cum = activeRoute.cumDist || [0];
+      const gpsStale = gpsWatchId === null || !lastPosition || (Date.now() - (lastPosition.time || 0)) > GPS_STALE_MS || lastPosition.accuracy > 60;
+      setNoteVisibility('staleGpsNote', gpsStale && gpsWatchId !== null);
+      const pos = (!gpsStale && lastPosition) ? [lastPosition.lat, lastPosition.lon] : null;
+
+      if (pos && !nav.arrived && geo.length > 1) {
+        // Project the position onto the route within a window around current progress:
+        // far enough forward for jumps, far enough back for a driver who u-turns,
+        // but bounded so a return leg can't collapse onto the outbound corridor.
+        const W_FORWARD = 300;
+        const W_BACK = 100;
+        const startV = Math.max(0, (nav.progressV || 0) - W_BACK);
+        const endV = Math.min(geo.length - 1, (nav.progressV || 0) + W_FORWARD);
+        let bestV = nav.progressV || 0, bestD = Infinity;
+        for (let v = startV; v <= endV; v++) {
+          const d = haversineM(pos, geo[v]);
+          if (d < bestD) { bestD = d; bestV = v; }
         }
-
-        const primaryRouteCoords = osrmData.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
-        const primaryDistKm = (osrmData.routes[0].distance / 1000).toFixed(1);
-        const primaryEtaMins = Math.round(osrmData.routes[0].duration / 60);
-
-        activeRouteAlternatives = [
-          {
-            name: "OSRM Fastest Arterial",
-            color: "#6366f1",
-            eta: primaryEtaMins,
-            distance_km: primaryDistKm,
-            description: "Real physical road path via major national highways & paved township entryways.",
-            path: primaryRouteCoords
-          },
-          {
-            name: "Backstreet Bypass (Congestion Avoidance)",
-            color: "#10b981",
-            eta: Math.round(primaryEtaMins * 1.15),
-            distance_km: (parseFloat(primaryDistKm) * 0.95).toFixed(1),
-            description: "Navigates around taxi ranks using internal secondary access roads.",
-            path: primaryRouteCoords.map((pt, idx) => idx % 3 === 0 ? [pt[0] + 0.0006, pt[1] - 0.0006] : pt)
-          },
-          {
-            name: "Wholesale Bulk Pooling Corridor",
-            color: "#f59e0b",
-            eta: Math.round(primaryEtaMins * 1.25),
-            distance_km: (parseFloat(primaryDistKm) * 1.1).toFixed(1),
-            description: "Heavy-vehicle compliant corridor avoiding low bridges and narrow dirt tracks.",
-            path: primaryRouteCoords.map((pt, idx) => idx % 4 === 0 ? [pt[0] - 0.0008, pt[1] + 0.0005] : pt)
+        // Self-crossing routes (roundabouts, out-and-back legs) put several
+        // vertices at the same physical spot. Do not let progress snap backward
+        // unless the backward match is clearly closer than the forward one.
+        if (bestV < (nav.progressV || 0)) {
+          let fV = nav.progressV || 0, fD = Infinity;
+          for (let v = (nav.progressV || 0); v <= endV; v++) {
+            const d = haversineM(pos, geo[v]);
+            if (d < fD) { fD = d; fV = v; }
           }
-        ];
-
-        routeSelectorBar.innerHTML = '';
-        activeRouteAlternatives.forEach((route, idx) => {
-          const btn = document.createElement('button');
-          btn.className = `px-3 py-1.5 rounded-lg font-medium transition-all text-xs border ${idx === 0 ? 'bg-indigo-600 text-white border-indigo-500' : 'bg-slate-900 text-slate-300 border-slate-700 hover:bg-slate-800'}`;
-          btn.innerHTML = `<i class="fa-solid fa-road"></i> ${route.name} (${route.eta} mins | ${route.distance_km} km)`;
-          btn.onclick = () => selectRouteVariant(idx);
-          routeSelectorBar.appendChild(btn);
-        });
-
-        plotRouteVariant(0);
-        jsonOutput.innerText = JSON.stringify({ source: "OSRM Real Road Engine", routes: activeRouteAlternatives }, null, 2);
-
-        let allPoints = [supplierCoords, ...spazaStops.map(s => s.coordinates)];
-        routeMap.fitBounds(L.latLngBounds(allPoints), { padding: [60, 60] });
-
-      } catch (err) {
-        jsonOutput.innerText = "Error fetching real road network:\n" + err.message;
-      }
-    }
-
-    function plotRouteVariant(index) {
-      currentRoutePolylines.forEach(pl => routeMap.removeLayer(pl));
-      currentRoutePolylines = [];
-
-      activeRouteAlternatives.forEach((route, idx) => {
-        const isSelected = idx === index;
-        const polyline = L.polyline(route.path, {
-          color: route.color,
-          weight: isSelected ? 5 : 3,
-          opacity: isSelected ? 1.0 : 0.4,
-          dashArray: isSelected ? null : '6, 6'
-        }).addTo(routeMap);
-
-        polyline.bindPopup(`<b>${route.name}</b><br>ETA: ${route.eta} mins | Distance: ${route.distance_km} km<br><i>${route.description}</i>`);
-        currentRoutePolylines.push(polyline);
-      });
-    }
-
-    function selectRouteVariant(index) {
-      const buttons = document.querySelectorAll('#routeSelectorBar button');
-      buttons.forEach((btn, idx) => {
-        if (idx === index) {
-          btn.className = "px-3 py-1.5 rounded-lg font-medium transition-all text-xs border bg-indigo-600 text-white border-indigo-500";
-        } else {
-          btn.className = "px-3 py-1.5 rounded-lg font-medium transition-all text-xs border bg-slate-900 text-slate-300 border-slate-700 hover:bg-slate-800";
+          if (fD <= bestD + 25) { bestV = fV; bestD = fD; }
         }
-      });
-      plotRouteVariant(index);
-    }
+        if (bestD <= OFF_ROUTE_M) nav.progressV = bestV;
 
-    // PayMerch Fintech Escrow Integration
-    async function createPayMerchEscrow() {
-      const merchantId = document.getElementById('payMerchantId').value;
-      const amount = parseFloat(document.getElementById('payAmountZar').value);
-      const resultBox = document.getElementById('escrowResultBox');
+        // Off-route detection: 3 consecutive fixes far from the route line.
+        if (nav.lastFixTime !== lastPosition.time) {
+          nav.offRouteCount = bestD > OFF_ROUTE_M ? nav.offRouteCount + 1 : 0;
+          nav.lastFixTime = lastPosition.time;
+        }
+        nav.offRoute = nav.offRouteCount >= 3;
+        setNoteVisibility('offRouteNote', nav.offRoute);
+        if (bestD > OFF_ROUTE_M) {
+          document.getElementById('navInstruction').innerText = 'Away from the route - guidance paused';
+          document.getElementById('navDistance').innerText = '--';
+          document.getElementById('navNextStep').innerText = 'Check the map. No automatic rerouting.';
+          document.getElementById('navManeuverIcon').innerHTML = '<i class="fa-solid fa-triangle-exclamation text-2xl"></i>';
+          document.getElementById('statRemaining').innerText = '--';
+          document.getElementById('statEta').innerText = '--';
+          return;
+        }
 
-      try {
-        const res = await fetch(`${APP_CONFIG.API_BASE_URL}/v1/paymerch/escrow/create`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            order_id: `ord_${Math.floor(Math.random() * 90000) + 10000}`,
-            merchant_id: merchantId,
-            wholesaler_id: "wh_bellville_central",
-            amount_zar: amount,
-            items_summary: ["10x Maize Meal 10kg", "5x Cooking Oil 2L", "Bulk Spaza Restock"]
-          })
+        // Current step = last step whose start vertex is behind progress.
+        let cur = 0;
+        for (let k = 0; k < steps.length; k++) {
+          if ((steps[k].startV || 0) <= (nav.progressV || 0)) cur = k; else break;
+        }
+        nav.stepIdx = cur;
+
+        const progressM = cum[Math.min(nav.progressV || 0, cum.length - 1)];
+        const totalM = cum[cum.length - 1];
+        const remaining = Math.max(0, totalM - progressM);
+        document.getElementById('statRemaining').innerText = fmtDist(remaining);
+
+        // ETA: scale original duration by remaining fraction
+        const frac = totalM > 0 ? remaining / totalM : 0;
+        const etaS = activeRoute.duration_s * Math.max(0, Math.min(1.2, frac));
+        document.getElementById('statEta').innerText = fmtDuration(etaS);
+
+        // Upcoming maneuver and along-route distance to it.
+        const next = steps[cur + 1];
+        const upcomingV = next ? (next.startV || 0) : geo.length - 1;
+        const toManeuver = Math.max(0, cum[Math.min(upcomingV, cum.length - 1)] - progressM) + (bestD === Infinity ? 0 : Math.min(bestD, 250));
+        document.getElementById('navDistance').innerText = fmtDist(toManeuver);
+
+        // Arrival: near the end of the route line, not merely near the depot -
+        // a round trip starts and ends at the same place.
+        if (remaining < 40 && (nav.progressV || 0) > geo.length - 80) {
+          document.getElementById('navInstruction').innerText = 'You have arrived back at the wholesaler hub.';
+          document.getElementById('navDistance').innerText = 'Done';
+          document.getElementById('navManeuverIcon').innerHTML = '<i class="fa-solid fa-flag-checkered text-2xl" style="color: var(--green);"></i>';
+          document.getElementById('statRemaining').innerText = '0 m';
+          document.getElementById('statEta').innerText = '0 min';
+          nav.arrived = true;
+          return;
+        }
+
+        // Show the maneuver the driver is approaching.
+        const show = next || steps[cur];
+        if (show) {
+          document.getElementById('navInstruction').innerText = stepInstruction(show);
+          document.getElementById('navManeuverIcon').innerHTML = '<i class="fa-solid ' + maneuverIcon(show) + ' text-2xl" style="color: var(--amber);"></i>';
+          const after = steps[cur + 2];
+          document.getElementById('navNextStep').innerText = after ? 'Then: ' + stepInstruction(after) : '';
+        }
+        document.querySelectorAll('#driveStepsList .step-row').forEach(r => {
+          r.classList.toggle('active-step', parseInt(r.dataset.stepIdx) === (next ? cur + 1 : cur));
         });
-
-        const data = await res.json();
-        resultBox.innerText = JSON.stringify(data, null, 2);
-      } catch (err) {
-        resultBox.innerText = "Error connecting to PayMerch backend escrow:\n" + err.message;
-      }
-    }
-
-    async function runSpatialSegmentation() {
-      const token = document.getElementById('authToken').value;
-      const fileInput = document.getElementById('imageryFile');
-      const jsonOutput = document.getElementById('spatialJsonContainer');
-      spatialLayerGroup.clearLayers();
-
-      if (!fileInput.files[0]) {
-        alert("Please select a township imagery file first.");
         return;
       }
 
-      try {
-        const formData = new FormData();
-        formData.append('file', fileInput.files[0]);
-
-        const res = await fetch(`${APP_CONFIG.API_BASE_URL}/v1/spatial/segment`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}` },
-          body: formData
-        });
-
-        const data = await res.json();
-        jsonOutput.innerText = JSON.stringify(data, null, 2);
-
-        const mockNodes = [
-          [-34.0280, 18.6650], [-34.0310, 18.6690], [-34.0260, 18.6720], [-34.0295, 18.6750]
-        ];
-        mockNodes.forEach((coord, idx) => {
-          L.circleMarker(coord, {
-            radius: 9,
-            color: '#10b981',
-            fillColor: '#34d399',
-            fillOpacity: 0.85
-          }).addTo(spatialLayerGroup).bindPopup(`<b>SAM 3.1 Corridor Node #${idx+1}</b><br>Passable Width: 3.4m (Verified)`);
-        });
-        L.polygon(mockNodes, { color: '#10b981', fillColor: '#059669', fillOpacity: 0.25, weight: 2 }).addTo(spatialLayerGroup);
-
-      } catch (err) {
-        jsonOutput.innerText = "Error running SAM 3.1 spatial segmentation:\n" + err.message;
+      if (!pos) {
+        setNoteVisibility('offRouteNote', false);
+        document.getElementById('navInstruction').innerText = 'Guidance paused - waiting for GPS';
+        document.getElementById('navDistance').innerText = '--';
+        document.getElementById('navNextStep').innerText = 'A recent fix within ±60 m is needed. Keep your eyes on the road.';
+        document.getElementById('navManeuverIcon').innerHTML = '<i class="fa-solid fa-satellite text-2xl"></i>';
+        document.getElementById('statRemaining').innerText = '--';
+        document.getElementById('statEta').innerText = '--';
+        document.getElementById('gpsPill').innerText = 'GPS paused';
+        document.getElementById('gpsStatus').innerText = 'No recent accurate fix. Guidance paused.';
       }
     }
+
+    // ---------- Connectivity & PWA ----------
+    function updateConnUI() {
+      const online = navigator.onLine;
+      const pill = document.getElementById('connPill');
+      pill.className = 'pill ' + (online ? 'pill-online' : 'pill-offline');
+      pill.innerHTML = online ? '<i class="fa-solid fa-signal mr-1"></i>Online' : '<i class="fa-solid fa-tower-cell mr-1"></i>Offline';
+      document.getElementById('connDetail').innerText = online ? 'Online' : 'Offline - saved trips still work';
+      document.getElementById('connDetail').style.color = online ? 'var(--green)' : 'var(--red)';
+      document.getElementById('offlineNavNote').classList.toggle('hidden', online);
+    }
+    window.addEventListener('online', updateConnUI);
+    window.addEventListener('offline', updateConnUI);
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').then(() => navigator.serviceWorker.ready).then(() => {
+        document.getElementById('swStatus').innerText = 'Ready';
+        document.getElementById('swStatus').style.color = 'var(--green)';
+      }).catch(() => {
+        document.getElementById('swStatus').innerText = 'Not available';
+      });
+    } else {
+      document.getElementById('swStatus').innerText = 'Not supported';
+    }
+
+    // ---------- Wire up ----------
+    document.getElementById('modeSpazaBtn').onclick = () => { clickMode = 'spaza'; };
+    document.getElementById('modeSupplierBtn').onclick = () => { clickMode = 'supplier'; };
+    document.getElementById('clearStopsBtn').onclick = () => { spazaStops = []; refreshStopsUI(); };
+    document.getElementById('fetchRouteBtn').onclick = fetchRoute;
+    document.getElementById('saveTripBtn').onclick = saveCurrentTrip;
+    document.getElementById('startNavFromPlanBtn').onclick = startNavigation;
+    document.getElementById('gpsToggleBtn').onclick = () => { gpsWatchId === null ? startGps() : stopGps(); };
+    document.getElementById('followBtn').onclick = () => {
+      followMe = !followMe;
+      document.getElementById('followBtn').style.borderColor = followMe ? 'var(--amber)' : 'var(--edge)';
+      if (followMe && lastPosition) map.setView([lastPosition.lat, lastPosition.lon], 16);
+    };
+
+    renderNav();
+    renderPresetSelect();
+    loadTownshipPreset('khayelitsha');
+    renderTrips();
+    updateConnUI();
   </script>
 </body>
 </html>
