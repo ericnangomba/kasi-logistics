@@ -165,7 +165,7 @@
         <div class="panel p-4 space-y-4">
           <div>
             <h2 class="font-bold text-sm mb-1"><i class="fa-solid fa-map-location-dot mr-2" style="color: var(--amber);"></i>Plan a supply run</h2>
-            <p class="text-xs" style="color: var(--ink-dim);">Pick a settlement hub or tap the map to place stops.</p>
+            <p class="text-xs" style="color: var(--ink-dim);">Pick a settlement hub for demo stops, choose a verified wholesaler, or tap the map to place your own.</p>
           </div>
           <div>
             <label class="text-xs font-semibold block mb-1" style="color: var(--ink-dim);">SETTLEMENT HUB</label>
@@ -183,11 +183,12 @@
               <span class="text-xs font-semibold" style="color: var(--ink-dim);">WHOLESALER HUB</span>
               <span id="supplierCoordsDisplay" class="text-xs font-mono" style="color: var(--teal);"></span>
             </div>
-            <input id="supplierName" type="text" class="text-sm" />
+            <input id="supplierName" type="text" class="text-sm" placeholder="Pick a verified wholesaler below, or tap the map" />
+            <p id="hubPrecisionNote" class="text-xs mt-1"></p>
             <div class="mt-2">
               <label class="text-xs font-semibold block mb-1" style="color: var(--ink-dim);">SUPPLIER DIRECTORY (WC, VERIFIED 12 NOV 2026)</label>
               <select id="directorySelect" class="touch-target"></select>
-              <p class="text-xs mt-1" style="color: var(--ink-dim);">Only address-confirmed wholesalers can be routing hubs. Directory listings need confirmation before you rely on them.</p>
+              <p class="text-xs mt-1" style="color: var(--ink-dim);">Only address-confirmed wholesalers can be routing hubs. Street estimates need a map tap on the exact entrance. Directory listings need confirmation before you rely on them.</p>
               <details class="mt-1">
                 <summary class="text-xs cursor-pointer" style="color: var(--ink-dim);">Browse all 26 listings by industrial area</summary>
                 <div id="directoryList" class="space-y-1 max-h-48 overflow-y-auto scroll-slim text-xs mt-2"></div>
@@ -397,7 +398,6 @@
       khayelitsha: {
         label: 'Khayelitsha (Site C, Harare, Kuyasa)',
         center: [-34.0280, 18.6750],
-        supplier: { name: 'Bellville MegaWholesale & Distribution Hub', coords: [-33.9012, 18.6291] },
         spazas: [
           { stop_id: 'kh_site_c_01', merchant_name: 'Mama Africa Spaza (Site C Terminus)', order_volume_kg: 180.0, coordinates: [-34.0321, 18.6654] },
           { stop_id: 'kh_harare_02', merchant_name: 'Harare Fresh Produce & Tuckshop', order_volume_kg: 240.0, coordinates: [-34.0210, 18.6812] },
@@ -410,7 +410,6 @@
       gugulethu: {
         label: 'Gugulethu (NY1, Square, NY78)',
         center: [-33.9750, 18.5700],
-        supplier: { name: 'Philippi Industrial Wholesale Park', coords: [-33.9700, 18.5500] },
         spazas: [
           { stop_id: 'gug_ny1_01', merchant_name: 'NY1 Unit 1 Spaza Shop', order_volume_kg: 140.0, coordinates: [-33.9780, 18.5680] },
           { stop_id: 'gug_square_02', merchant_name: 'NY108 Gugulethu Square Tuck', order_volume_kg: 220.0, coordinates: [-33.9820, 18.5740] },
@@ -421,7 +420,6 @@
       mitchellsplain: {
         label: 'Mitchells Plain (Town Centre, Mandalay)',
         center: [-34.0450, 18.6100],
-        supplier: { name: 'Epping Industria Bulk Goods Market', coords: [-33.9250, 18.5200] },
         spazas: [
           { stop_id: 'mp_centre_01', merchant_name: 'Town Centre Wholesaling Spaza', order_volume_kg: 280.0, coordinates: [-34.0420, 18.6080] },
           { stop_id: 'mp_mandalay_02', merchant_name: 'Mandalay Station Store', order_volume_kg: 195.0, coordinates: [-34.0510, 18.6210] },
@@ -431,7 +429,6 @@
       langa: {
         label: 'Langa (Zone 23, Washington St)',
         center: [-33.9350, 18.5300],
-        supplier: { name: 'Epping Industrial Distribution Hub', coords: [-33.9250, 18.5200] },
         spazas: [
           { stop_id: 'langa_z23_01', merchant_name: 'Zone 23 Langa Spaza', order_volume_kg: 130.0, coordinates: [-33.9330, 18.5280] },
           { stop_id: 'langa_wash_02', merchant_name: 'Washington Street Tuckshop', order_volume_kg: 165.0, coordinates: [-33.9390, 18.5350] },
@@ -440,9 +437,11 @@
       }
     };
 
-    // ---------- Verified Western Cape supplier directory (12 Nov 2026) ----------
-    // source "own" = confirmed on supplier website; "directory" = business-directory listing, confirm before visiting.
-    // routable = street/exact geocode only; area/place/unverified pins are never routing endpoints.
+    // ---------- Western Cape supplier directory (checked 12 Nov 2026) ----------
+    // source "own" = address confirmed on the supplier's own website; "directory" = business-directory listing, confirm before visiting.
+    // routable = street/exact-level position only; area/place/unverified pins are never routing endpoints.
+    // verified = position matches an owning/matching location source (supplier site coordinates or a named OSM store feature).
+    // verified=false routable entries are STREET ESTIMATES: the app must not present them as confirmed entrances.
     const SUPPLIER_DIRECTORY = [
       {
             "name": "Bidfood Cape Town",
@@ -453,8 +452,10 @@
             "source": "own",
             "precision": "street",
             "routable": true,
+            "verified": false,
             "lat": -33.961157,
-            "lon": 18.591669
+            "lon": 18.591669,
+            "coord_note": "street-level geocode (OSM Nominatim)"
       },
       {
             "name": "All In One Cash and Carry",
@@ -465,8 +466,10 @@
             "source": "directory",
             "precision": "place",
             "routable": false,
+            "verified": false,
             "lat": -33.900465,
-            "lon": 18.629811
+            "lon": 18.629811,
+            "coord_note": "place-level coordinate (aggregator)"
       },
       {
             "name": "HH Foods",
@@ -477,8 +480,10 @@
             "source": "own",
             "precision": "street",
             "routable": true,
+            "verified": false,
             "lat": -33.95956,
-            "lon": 18.693822
+            "lon": 18.693822,
+            "coord_note": "street-level geocode (OSM Nominatim)"
       },
       {
             "name": "Makro Cape Gate",
@@ -489,8 +494,10 @@
             "source": "own",
             "precision": "street",
             "routable": true,
-            "lat": -33.865192,
-            "lon": 18.702319
+            "verified": true,
+            "lat": -33.8482237,
+            "lon": 18.6939432,
+            "coord_note": "OSM store feature \"Makro Store Cape Gate\", Belami Ave, De Tuin"
       },
       {
             "name": "ZAFOODS",
@@ -501,8 +508,10 @@
             "source": "own",
             "precision": "unverified",
             "routable": false,
+            "verified": false,
             "lat": null,
-            "lon": null
+            "lon": null,
+            "coord_note": "no verified coordinates"
       },
       {
             "name": "1 Up Cash & Carry",
@@ -513,8 +522,10 @@
             "source": "directory",
             "precision": "area",
             "routable": false,
+            "verified": false,
             "lat": -33.931519,
-            "lon": 18.529467
+            "lon": 18.529467,
+            "coord_note": "industrial-area anchor, not the exact premises"
       },
       {
             "name": "5 Star Distributors",
@@ -525,8 +536,10 @@
             "source": "directory",
             "precision": "area",
             "routable": false,
+            "verified": false,
             "lat": -33.931519,
-            "lon": 18.529467
+            "lon": 18.529467,
+            "coord_note": "industrial-area anchor, not the exact premises"
       },
       {
             "name": "AAA Distributor",
@@ -537,8 +550,10 @@
             "source": "directory",
             "precision": "area",
             "routable": false,
+            "verified": false,
             "lat": -33.931519,
-            "lon": 18.529467
+            "lon": 18.529467,
+            "coord_note": "industrial-area anchor, not the exact premises"
       },
       {
             "name": "Eldorado Cash & Carry",
@@ -549,8 +564,10 @@
             "source": "directory",
             "precision": "area",
             "routable": false,
+            "verified": false,
             "lat": -33.931519,
-            "lon": 18.529467
+            "lon": 18.529467,
+            "coord_note": "industrial-area anchor, not the exact premises"
       },
       {
             "name": "Newlook Cash & Carry",
@@ -561,8 +578,10 @@
             "source": "directory",
             "precision": "area",
             "routable": false,
+            "verified": false,
             "lat": -33.931519,
-            "lon": 18.529467
+            "lon": 18.529467,
+            "coord_note": "industrial-area anchor, not the exact premises"
       },
       {
             "name": "Cape Town Market",
@@ -573,8 +592,10 @@
             "source": "own",
             "precision": "exact",
             "routable": true,
+            "verified": true,
             "lat": -33.930969,
-            "lon": 18.53065
+            "lon": 18.53065,
+            "coord_note": "supplier site coords; OSM feature match within 125 m"
       },
       {
             "name": "Jumbo Epping Cash & Carry",
@@ -585,8 +606,10 @@
             "source": "own",
             "precision": "street",
             "routable": true,
+            "verified": false,
             "lat": -33.933369,
-            "lon": 18.564907
+            "lon": 18.564907,
+            "coord_note": "street-level geocode (OSM Nominatim)"
       },
       {
             "name": "Palman Distribution",
@@ -597,8 +620,10 @@
             "source": "own",
             "precision": "area",
             "routable": false,
+            "verified": false,
             "lat": -33.825394,
-            "lon": 18.534597
+            "lon": 18.534597,
+            "coord_note": "industrial-area anchor, not the exact premises"
       },
       {
             "name": "Albatross Food",
@@ -609,8 +634,10 @@
             "source": "own",
             "precision": "place",
             "routable": false,
+            "verified": false,
             "lat": -33.871057,
-            "lon": 18.52055
+            "lon": 18.52055,
+            "coord_note": "place-level coordinate (aggregator)"
       },
       {
             "name": "Bites Wholesale & Distribution",
@@ -621,8 +648,10 @@
             "source": "directory",
             "precision": "area",
             "routable": false,
+            "verified": false,
             "lat": -33.85975,
-            "lon": 18.522916
+            "lon": 18.522916,
+            "coord_note": "industrial-area anchor, not the exact premises"
       },
       {
             "name": "Crown Factory Mart",
@@ -633,8 +662,10 @@
             "source": "directory",
             "precision": "area",
             "routable": false,
+            "verified": false,
             "lat": -33.85975,
-            "lon": 18.522916
+            "lon": 18.522916,
+            "coord_note": "industrial-area anchor, not the exact premises"
       },
       {
             "name": "Makro Montague Gardens",
@@ -645,8 +676,10 @@
             "source": "own",
             "precision": "street",
             "routable": true,
+            "verified": false,
             "lat": -33.84829,
-            "lon": 18.527627
+            "lon": 18.527627,
+            "coord_note": "street-level geocode (OSM Nominatim)"
       },
       {
             "name": "Montague Cash & Carry",
@@ -657,8 +690,10 @@
             "source": "directory",
             "precision": "place",
             "routable": false,
+            "verified": false,
             "lat": -33.85509,
-            "lon": 18.51975
+            "lon": 18.51975,
+            "coord_note": "place-level coordinate (aggregator)"
       },
       {
             "name": "Makro Ottery",
@@ -669,8 +704,10 @@
             "source": "own",
             "precision": "street",
             "routable": true,
-            "lat": -34.013047,
-            "lon": 18.485558
+            "verified": true,
+            "lat": -34.0203056,
+            "lon": 18.5211728,
+            "coord_note": "OSM store feature \"Makro\" (shop=wholesale), Strandfontein Rd"
       },
       {
             "name": "Bloch & Levitan",
@@ -681,8 +718,10 @@
             "source": "directory",
             "precision": "area",
             "routable": false,
+            "verified": false,
             "lat": -33.914046,
-            "lon": 18.471193
+            "lon": 18.471193,
+            "coord_note": "industrial-area anchor, not the exact premises"
       },
       {
             "name": "Meatropolis Meat",
@@ -693,8 +732,10 @@
             "source": "own",
             "precision": "area",
             "routable": false,
+            "verified": false,
             "lat": -33.914046,
-            "lon": 18.471193
+            "lon": 18.471193,
+            "coord_note": "industrial-area anchor, not the exact premises"
       },
       {
             "name": "Catermarket",
@@ -705,8 +746,10 @@
             "source": "directory",
             "precision": "area",
             "routable": false,
+            "verified": false,
             "lat": -33.917089,
-            "lon": 18.613329
+            "lon": 18.613329,
+            "coord_note": "industrial-area anchor, not the exact premises"
       },
       {
             "name": "Gastro Foods",
@@ -717,8 +760,10 @@
             "source": "directory",
             "precision": "area",
             "routable": false,
+            "verified": false,
             "lat": -33.917089,
-            "lon": 18.613329
+            "lon": 18.613329,
+            "coord_note": "industrial-area anchor, not the exact premises"
       },
       {
             "name": "Lactalis SA / Parmalat",
@@ -729,8 +774,10 @@
             "source": "directory",
             "precision": "area",
             "routable": false,
+            "verified": false,
             "lat": -33.917089,
-            "lon": 18.613329
+            "lon": 18.613329,
+            "coord_note": "industrial-area anchor, not the exact premises"
       },
       {
             "name": "Mountain Meat Traders",
@@ -741,8 +788,10 @@
             "source": "directory",
             "precision": "area",
             "routable": false,
+            "verified": false,
             "lat": -33.917089,
-            "lon": 18.613329
+            "lon": 18.613329,
+            "coord_note": "industrial-area anchor, not the exact premises"
       },
       {
             "name": "Peninsula Beverages",
@@ -753,13 +802,16 @@
             "source": "directory",
             "precision": "area",
             "routable": false,
+            "verified": false,
             "lat": -33.917089,
-            "lon": 18.613329
+            "lon": 18.613329,
+            "coord_note": "industrial-area anchor, not the exact premises"
       }
 ];
 
     // ---------- State ----------
-    let supplierCoords = [-33.9012, 18.6291];
+    let supplierCoords = null;          // null until the user picks a hub (no silent default)
+    let hubPrecision = null;            // 'verified' | 'estimate' | 'custom' | null
     let spazaStops = [];
     let clickMode = 'spaza';
     let activeRoute = null;        // { geometry: [[lat,lon]...], steps: [...], distance_m, duration_s, alternatives: [...] }
@@ -960,7 +1012,7 @@
         SUPPLIER_DIRECTORY.filter(s => s.area === area && s.routable).forEach(s => {
           const opt = document.createElement('option');
           opt.value = s.name;
-          opt.textContent = s.name + ' - ' + s.address;
+          opt.textContent = s.name + (s.verified ? ' - verified location' : ' - street estimate');
           grp.appendChild(opt);
         });
         if (grp.children.length) sel.appendChild(grp);
@@ -979,9 +1031,11 @@
         SUPPLIER_DIRECTORY.filter(s => s.area === area).forEach(s => {
           const row = document.createElement('div');
           row.className = 'panel-2 px-2 py-1';
-          const badge = s.routable
-            ? '<button class="text-xs font-semibold shrink-0" style="color: var(--teal);" data-set-hub="' + esc(s.name) + '">Set as hub</button>'
-            : '<span class="shrink-0" style="color: var(--ink-dim);">approx. area - confirm address</span>';
+          const badge = !s.routable
+            ? '<span class="shrink-0" style="color: var(--ink-dim);">approx. area - confirm address</span>'
+            : (s.verified
+              ? '<span class="shrink-0 text-right"><span class="font-semibold" style="color: var(--teal);">verified location</span> <button class="text-xs font-semibold" style="color: var(--teal);" data-set-hub="' + esc(s.name) + '">Set as hub</button></span>'
+              : '<span class="shrink-0 text-right"><span class="font-semibold" style="color: var(--amber);">street estimate</span> <button class="text-xs font-semibold" style="color: var(--teal);" data-set-hub="' + esc(s.name) + '">Set as hub</button></span>');
           row.innerHTML = '<div class="flex items-center justify-between gap-2">'
             + '<span class="truncate font-semibold">' + esc(s.name) + '</span>' + badge + '</div>'
             + '<div style="color: var(--ink-dim);">' + esc(s.category)
@@ -998,11 +1052,28 @@
       });
     }
 
+    function setHubNote() {
+      const el = document.getElementById('hubPrecisionNote');
+      if (!supplierCoords) { el.textContent = ''; return; }
+      if (hubPrecision === 'verified') {
+        el.style.color = 'var(--teal)';
+        el.textContent = 'Verified store location.';
+      } else if (hubPrecision === 'estimate') {
+        el.style.color = 'var(--amber)';
+        el.textContent = 'Street-level estimate - not a confirmed entrance. Tap the map on the exact gate before routing.';
+      } else {
+        el.style.color = 'var(--ink-dim)';
+        el.textContent = 'Custom pin - your chosen hub location.';
+      }
+    }
+
     function setSupplierFromDirectory(s) {
       if (!s.routable || s.lat == null) return;
       supplierCoords = [s.lat, s.lon];
+      hubPrecision = s.verified ? 'verified' : 'estimate';
       document.getElementById('supplierName').value = s.name;
       document.getElementById('supplierCoordsDisplay').innerText = s.lat + ', ' + s.lon;
+      setHubNote();
       map.setView(supplierCoords, 14);
       renderMarkers();
     }
@@ -1011,10 +1082,13 @@
       const preset = townshipPresets[key];
       if (!preset) return;
       map.setView(preset.center, 13);
-      supplierCoords = preset.supplier.coords.slice();
-      document.getElementById('supplierName').value = preset.supplier.name;
-      document.getElementById('supplierCoordsDisplay').innerText = supplierCoords[0] + ', ' + supplierCoords[1];
-      spazaStops = preset.spazas.map(s => ({ ...s }));
+      supplierCoords = null;
+      hubPrecision = null;
+      document.getElementById('supplierName').value = '';
+      document.getElementById('supplierCoordsDisplay').innerText = 'not set';
+      document.getElementById('directorySelect').value = '';
+      setHubNote();
+      spazaStops = preset.spazas.map(s => ({ ...s, demo: true }));
       refreshStopsUI();
     }
 
@@ -1023,11 +1097,18 @@
       document.getElementById('stopsJson').value = JSON.stringify(spazaStops, null, 2);
       const list = document.getElementById('stopsList');
       list.innerHTML = '';
+      if (spazaStops.some(s => s.demo)) {
+        const note = document.createElement('div');
+        note.className = 'text-xs px-1';
+        note.style.color = 'var(--amber)';
+        note.textContent = 'Demo stops - illustrative only, not verified delivery destinations.';
+        list.appendChild(note);
+      }
       spazaStops.forEach((s, i) => {
         const row = document.createElement('div');
         row.className = 'flex items-center justify-between gap-2 panel-2 px-2 py-1';
-        row.innerHTML = `<span class="truncate"><b style="color: var(--teal);">${i + 1}.</b> ${s.merchant_name}</span>
-          <span class="text-xs shrink-0" style="color: var(--ink-dim);">${s.order_volume_kg} kg</span>`;
+        row.innerHTML = `<span class="truncate"><b style="color: var(--teal);">${i + 1}.</b> ${esc(s.merchant_name)}</span>
+          <span class="text-xs shrink-0" style="color: var(--ink-dim);">${s.demo ? '<b style="color: var(--amber);">DEMO</b> · ' : ''}${s.order_volume_kg} kg</span>`;
         list.appendChild(row);
       });
       renderMarkers();
@@ -1040,8 +1121,10 @@
         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
         iconSize: [25, 41], iconAnchor: [12, 41]
       });
-      L.marker(supplierCoords, { icon: supplierIcon }).addTo(markersLayer)
-        .bindPopup('<b>Wholesaler:</b> ' + document.getElementById('supplierName').value);
+      if (supplierCoords) {
+        L.marker(supplierCoords, { icon: supplierIcon }).addTo(markersLayer)
+          .bindPopup('<b>Wholesaler:</b> ' + esc(document.getElementById('supplierName').value));
+      }
       const spazaIcon = L.icon({
         iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
@@ -1049,7 +1132,8 @@
       });
       spazaStops.forEach((stop, idx) => {
         L.marker(stop.coordinates, { icon: spazaIcon }).addTo(markersLayer)
-          .bindPopup('<b>Spaza #' + (idx + 1) + ':</b> ' + stop.merchant_name + '<br><b>Load:</b> ' + stop.order_volume_kg + ' kg');
+          .bindPopup('<b>Spaza #' + (idx + 1) + ':</b> ' + esc(stop.merchant_name) + '<br><b>Load:</b> ' + stop.order_volume_kg + ' kg'
+            + (stop.demo ? '<br><i>Demo stop - not a verified destination</i>' : ''));
       });
     }
 
@@ -1059,7 +1143,10 @@
       const lon = parseFloat(e.latlng.lng.toFixed(4));
       if (clickMode === 'supplier') {
         supplierCoords = [lat, lon];
+        hubPrecision = 'custom';
+        document.getElementById('directorySelect').value = '';
         document.getElementById('supplierCoordsDisplay').innerText = lat + ', ' + lon;
+        setHubNote();
       } else {
         spazaStops.push({
           stop_id: 'spaza_' + (spazaStops.length + 1),
@@ -1081,6 +1168,13 @@
       if (spazaStops.length === 0) {
         alert('Add at least one spaza stop first.');
         return;
+      }
+      if (!supplierCoords) {
+        alert('Choose a wholesaler hub first - pick one from the supplier directory, or tap the map to place your own.');
+        return;
+      }
+      if (hubPrecision === 'estimate') {
+        if (!confirm('This wholesaler location is a street-level estimate, not a confirmed entrance. Cancel to tap the map on the exact gate, or press OK to route to the estimate anyway.')) return;
       }
       refreshStopsUI();
       const btn = document.getElementById('fetchRouteBtn');
@@ -1183,7 +1277,7 @@
         L.polyline(a.geometry, { color: '#3b82f6', weight: 4, opacity: 0.35, dashArray: '6,6' }).addTo(routeLayer);
       });
       L.polyline(activeRoute.geometry, { color: '#fbbf24', weight: 6, opacity: 0.95 }).addTo(routeLayer);
-      const pts = [supplierCoords].concat(spazaStops.map(s => s.coordinates));
+      const pts = (supplierCoords ? [supplierCoords] : []).concat(spazaStops.map(s => s.coordinates));
       map.fitBounds(L.latLngBounds(pts.concat(activeRoute.geometry)), { padding: [50, 50] });
     }
 
@@ -1239,6 +1333,7 @@
       activeRoute = t.route;
       computeRouteDerived();
       supplierCoords = t.route.supplier.coords.slice();
+      hubPrecision = 'custom';
       spazaStops = t.route.stops.map(s => ({ ...s }));
       document.getElementById('supplierName').value = t.route.supplier.name;
       document.getElementById('supplierCoordsDisplay').innerText = supplierCoords[0] + ', ' + supplierCoords[1];
