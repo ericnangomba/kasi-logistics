@@ -10,7 +10,7 @@
      route survives a signal drop. */
 'use strict';
 
-const SHELL_CACHE = 'kasi-shell-v3';
+const SHELL_CACHE = 'kasi-shell-v4';
 const CDN_CACHE = 'kasi-cdn-v1';
 const TILE_CACHE = 'kasi-tiles-v1';
 const ROUTE_CACHE = 'kasi-routes-v1';

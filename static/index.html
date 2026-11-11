@@ -184,6 +184,15 @@
               <span id="supplierCoordsDisplay" class="text-xs font-mono" style="color: var(--teal);"></span>
             </div>
             <input id="supplierName" type="text" class="text-sm" />
+            <div class="mt-2">
+              <label class="text-xs font-semibold block mb-1" style="color: var(--ink-dim);">SUPPLIER DIRECTORY (WC, VERIFIED 12 NOV 2026)</label>
+              <select id="directorySelect" class="touch-target"></select>
+              <p class="text-xs mt-1" style="color: var(--ink-dim);">Only address-confirmed wholesalers can be routing hubs. Directory listings need confirmation before you rely on them.</p>
+              <details class="mt-1">
+                <summary class="text-xs cursor-pointer" style="color: var(--ink-dim);">Browse all 26 listings by industrial area</summary>
+                <div id="directoryList" class="space-y-1 max-h-48 overflow-y-auto scroll-slim text-xs mt-2"></div>
+              </details>
+            </div>
           </div>
           <div class="panel-2 p-3">
             <div class="flex items-center justify-between mb-2">
@@ -431,6 +440,324 @@
       }
     };
 
+    // ---------- Verified Western Cape supplier directory (12 Nov 2026) ----------
+    // source "own" = confirmed on supplier website; "directory" = business-directory listing, confirm before visiting.
+    // routable = street/exact geocode only; area/place/unverified pins are never routing endpoints.
+    const SUPPLIER_DIRECTORY = [
+      {
+            "name": "Bidfood Cape Town",
+            "area": "Airport Industria",
+            "address": "Cnr Borcherds Quarry Rd & Bahrain Dr",
+            "phone": "021 927 2000",
+            "category": "Foodservice wholesale",
+            "source": "own",
+            "precision": "street",
+            "routable": true,
+            "lat": -33.961157,
+            "lon": 18.591669
+      },
+      {
+            "name": "All In One Cash and Carry",
+            "area": "Bellville",
+            "address": "8 Vrede Street",
+            "phone": "083 719 5135",
+            "category": "Cash & carry",
+            "source": "directory",
+            "precision": "place",
+            "routable": false,
+            "lat": -33.900465,
+            "lon": 18.629811
+      },
+      {
+            "name": "HH Foods",
+            "area": "Blackheath",
+            "address": "9 Helene Avenue",
+            "phone": "021 905 6786",
+            "category": "Snacks & confectionery wholesale",
+            "source": "own",
+            "precision": "street",
+            "routable": true,
+            "lat": -33.95956,
+            "lon": 18.693822
+      },
+      {
+            "name": "Makro Cape Gate",
+            "area": "Brackenfell",
+            "address": "Okavango Road",
+            "phone": "0860 600 999",
+            "category": "Bulk retail",
+            "source": "own",
+            "precision": "street",
+            "routable": true,
+            "lat": -33.865192,
+            "lon": 18.702319
+      },
+      {
+            "name": "ZAFOODS",
+            "area": "Cape Town (area unverified)",
+            "address": "unknown",
+            "phone": "021 510 0550",
+            "category": "Foodservice",
+            "source": "own",
+            "precision": "unverified",
+            "routable": false,
+            "lat": null,
+            "lon": null
+      },
+      {
+            "name": "1 Up Cash & Carry",
+            "area": "Epping Industria",
+            "address": "area only",
+            "phone": "021 534 6227",
+            "category": "Cash & carry",
+            "source": "directory",
+            "precision": "area",
+            "routable": false,
+            "lat": -33.931519,
+            "lon": 18.529467
+      },
+      {
+            "name": "5 Star Distributors",
+            "area": "Epping Industria",
+            "address": "area only",
+            "phone": "021 535 2740",
+            "category": "Distributor",
+            "source": "directory",
+            "precision": "area",
+            "routable": false,
+            "lat": -33.931519,
+            "lon": 18.529467
+      },
+      {
+            "name": "AAA Distributor",
+            "area": "Epping Industria",
+            "address": "area only",
+            "phone": "021 023 3969",
+            "category": "Distributor",
+            "source": "directory",
+            "precision": "area",
+            "routable": false,
+            "lat": -33.931519,
+            "lon": 18.529467
+      },
+      {
+            "name": "Eldorado Cash & Carry",
+            "area": "Epping Industria",
+            "address": "area only",
+            "phone": "084 301 2575",
+            "category": "Cash & carry",
+            "source": "directory",
+            "precision": "area",
+            "routable": false,
+            "lat": -33.931519,
+            "lon": 18.529467
+      },
+      {
+            "name": "Newlook Cash & Carry",
+            "area": "Epping Industria",
+            "address": "area only",
+            "phone": "",
+            "category": "Cash & carry",
+            "source": "directory",
+            "precision": "area",
+            "routable": false,
+            "lat": -33.931519,
+            "lon": 18.529467
+      },
+      {
+            "name": "Cape Town Market",
+            "area": "Epping Industria 1",
+            "address": "110 Gunners Circle",
+            "phone": "021 531 2191",
+            "category": "Fresh produce commission market",
+            "source": "own",
+            "precision": "exact",
+            "routable": true,
+            "lat": -33.930969,
+            "lon": 18.53065
+      },
+      {
+            "name": "Jumbo Epping Cash & Carry",
+            "area": "Epping Industria 2",
+            "address": "5 Bofors Circle",
+            "phone": "021 534 0702",
+            "category": "Cash & carry",
+            "source": "own",
+            "precision": "street",
+            "routable": true,
+            "lat": -33.933369,
+            "lon": 18.564907
+      },
+      {
+            "name": "Palman Distribution",
+            "area": "Killarney Gardens",
+            "address": "19 Killarney Avenue",
+            "phone": "021 556 7409",
+            "category": "Food service wholesale",
+            "source": "own",
+            "precision": "area",
+            "routable": false,
+            "lat": -33.825394,
+            "lon": 18.534597
+      },
+      {
+            "name": "Albatross Food",
+            "area": "Montague Gardens",
+            "address": "7A Chain Avenue",
+            "phone": "021 555 0939",
+            "category": "FMCG distributor (delivers to spazas WC-wide)",
+            "source": "own",
+            "precision": "place",
+            "routable": false,
+            "lat": -33.871057,
+            "lon": 18.52055
+      },
+      {
+            "name": "Bites Wholesale & Distribution",
+            "area": "Montague Gardens",
+            "address": "area only",
+            "phone": "",
+            "category": "Wholesaler",
+            "source": "directory",
+            "precision": "area",
+            "routable": false,
+            "lat": -33.85975,
+            "lon": 18.522916
+      },
+      {
+            "name": "Crown Factory Mart",
+            "area": "Montague Gardens",
+            "address": "area only",
+            "phone": "",
+            "category": "Food distribution",
+            "source": "directory",
+            "precision": "area",
+            "routable": false,
+            "lat": -33.85975,
+            "lon": 18.522916
+      },
+      {
+            "name": "Makro Montague Gardens",
+            "area": "Montague Gardens",
+            "address": "3 Topaz Boulevard",
+            "phone": "0860 600 999",
+            "category": "Bulk retail",
+            "source": "own",
+            "precision": "street",
+            "routable": true,
+            "lat": -33.84829,
+            "lon": 18.527627
+      },
+      {
+            "name": "Montague Cash & Carry",
+            "area": "Montague Gardens",
+            "address": "4 Dawn Road",
+            "phone": "021 551 6071",
+            "category": "Cash & carry",
+            "source": "directory",
+            "precision": "place",
+            "routable": false,
+            "lat": -33.85509,
+            "lon": 18.51975
+      },
+      {
+            "name": "Makro Ottery",
+            "area": "Ottery",
+            "address": "385 Ottery Road",
+            "phone": "0860 600 999",
+            "category": "Bulk retail",
+            "source": "own",
+            "precision": "street",
+            "routable": true,
+            "lat": -34.013047,
+            "lon": 18.485558
+      },
+      {
+            "name": "Bloch & Levitan",
+            "area": "Paarden Eiland",
+            "address": "area only",
+            "phone": "021 514 3500",
+            "category": "Wholesale merchant",
+            "source": "directory",
+            "precision": "area",
+            "routable": false,
+            "lat": -33.914046,
+            "lon": 18.471193
+      },
+      {
+            "name": "Meatropolis Meat",
+            "area": "Paarden Eiland",
+            "address": "collection point, address on enquiry",
+            "phone": "",
+            "category": "Meat wholesale",
+            "source": "own",
+            "precision": "area",
+            "routable": false,
+            "lat": -33.914046,
+            "lon": 18.471193
+      },
+      {
+            "name": "Catermarket",
+            "area": "Parow Industria",
+            "address": "21 Radnor Road",
+            "phone": "021 949 7325",
+            "category": "Catering wholesale",
+            "source": "directory",
+            "precision": "area",
+            "routable": false,
+            "lat": -33.917089,
+            "lon": 18.613329
+      },
+      {
+            "name": "Gastro Foods",
+            "area": "Parow Industria",
+            "address": "48 Junction Road",
+            "phone": "021 951 3169",
+            "category": "Food wholesale",
+            "source": "directory",
+            "precision": "area",
+            "routable": false,
+            "lat": -33.917089,
+            "lon": 18.613329
+      },
+      {
+            "name": "Lactalis SA / Parmalat",
+            "area": "Parow Industria",
+            "address": "60 Industria Ring Road",
+            "phone": "021 937 3609",
+            "category": "Dairy",
+            "source": "directory",
+            "precision": "area",
+            "routable": false,
+            "lat": -33.917089,
+            "lon": 18.613329
+      },
+      {
+            "name": "Mountain Meat Traders",
+            "area": "Parow Industria",
+            "address": "73 Industria Ring Road",
+            "phone": "021 932 8007",
+            "category": "Meat wholesale",
+            "source": "directory",
+            "precision": "area",
+            "routable": false,
+            "lat": -33.917089,
+            "lon": 18.613329
+      },
+      {
+            "name": "Peninsula Beverages",
+            "area": "Parow Industria",
+            "address": "57 Industria Ring Road",
+            "phone": "021 936 5700",
+            "category": "Coca-Cola bottler/distributor",
+            "source": "directory",
+            "precision": "area",
+            "routable": false,
+            "lat": -33.917089,
+            "lon": 18.613329
+      }
+];
+
     // ---------- State ----------
     let supplierCoords = [-33.9012, 18.6291];
     let spazaStops = [];
@@ -617,6 +944,67 @@
         sel.appendChild(opt);
       });
       sel.onchange = () => loadTownshipPreset(sel.value);
+    }
+
+    function esc(s) {
+      return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function initSupplierDirectory() {
+      const sel = document.getElementById('directorySelect');
+      const areas = [...new Set(SUPPLIER_DIRECTORY.map(s => s.area))].sort();
+      sel.innerHTML = '<option value="">Pick a verified wholesaler\u2026</option>';
+      areas.forEach(area => {
+        const grp = document.createElement('optgroup');
+        grp.label = area;
+        SUPPLIER_DIRECTORY.filter(s => s.area === area && s.routable).forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.name;
+          opt.textContent = s.name + ' - ' + s.address;
+          grp.appendChild(opt);
+        });
+        if (grp.children.length) sel.appendChild(grp);
+      });
+      sel.onchange = () => {
+        const s = SUPPLIER_DIRECTORY.find(x => x.name === sel.value);
+        if (s) setSupplierFromDirectory(s);
+      };
+      const list = document.getElementById('directoryList');
+      areas.forEach(area => {
+        const head = document.createElement('div');
+        head.className = 'font-bold mt-1';
+        head.style.color = 'var(--amber)';
+        head.textContent = area;
+        list.appendChild(head);
+        SUPPLIER_DIRECTORY.filter(s => s.area === area).forEach(s => {
+          const row = document.createElement('div');
+          row.className = 'panel-2 px-2 py-1';
+          const badge = s.routable
+            ? '<button class="text-xs font-semibold shrink-0" style="color: var(--teal);" data-set-hub="' + esc(s.name) + '">Set as hub</button>'
+            : '<span class="shrink-0" style="color: var(--ink-dim);">approx. area - confirm address</span>';
+          row.innerHTML = '<div class="flex items-center justify-between gap-2">'
+            + '<span class="truncate font-semibold">' + esc(s.name) + '</span>' + badge + '</div>'
+            + '<div style="color: var(--ink-dim);">' + esc(s.category)
+            + (s.phone ? ' &middot; ' + esc(s.phone) : '')
+            + ' &middot; ' + (s.source === 'own' ? 'own website' : 'directory listing') + '</div>';
+          list.appendChild(row);
+        });
+      });
+      list.querySelectorAll('[data-set-hub]').forEach(btn => {
+        btn.onclick = () => {
+          const s = SUPPLIER_DIRECTORY.find(x => x.name === btn.getAttribute('data-set-hub'));
+          if (s) setSupplierFromDirectory(s);
+        };
+      });
+    }
+
+    function setSupplierFromDirectory(s) {
+      if (!s.routable || s.lat == null) return;
+      supplierCoords = [s.lat, s.lon];
+      document.getElementById('supplierName').value = s.name;
+      document.getElementById('supplierCoordsDisplay').innerText = s.lat + ', ' + s.lon;
+      map.setView(supplierCoords, 14);
+      renderMarkers();
     }
 
     function loadTownshipPreset(key) {
@@ -1172,6 +1560,7 @@
 
     renderNav();
     renderPresetSelect();
+    initSupplierDirectory();
     loadTownshipPreset('khayelitsha');
     renderTrips();
     updateConnUI();

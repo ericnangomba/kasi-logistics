@@ -2,7 +2,7 @@
 ### Township delivery routing with offline-first navigation
 
 > **Current status (Nov 2026)**
-> - **Working today:** live map (OpenStreetMap + satellite toggle), real road routing with turn-by-turn steps via the OSRM demo server, real route alternatives when OSRM returns them, GPS live-position navigation, saved offline trips, and an installable offline-tolerant app shell (PWA).
+> - **Working today:** live map (OpenStreetMap + satellite toggle), real road routing with turn-by-turn steps via the OSRM demo server, real route alternatives when OSRM returns them, GPS live-position navigation, saved offline trips, an installable offline-tolerant app shell (PWA), and a verified Western Cape supplier directory (26 listings; address-confirmed wholesalers can be set as routing hubs, directory-only listings are marked for confirmation first).
 > - **Concept / not connected:** the SAM 3.1 alleyway vision tab (no model backend deployed) and the PayMerch escrow tab (in-memory demo backend, no real money).
 > - The OSRM demo server is for development use; production routing needs a self-hosted OSRM or another OSM-based routing service.
 > - Offline scope: saved routes can guide with a recent device GPS fix (within 60 m reported accuracy); real-phone GPS is not yet verified. Stale, poor-accuracy or off-route fixes pause maneuver guidance. No offline rerouting. Fetching new routes or unviewed map areas needs a connection.
